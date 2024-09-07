@@ -5,6 +5,8 @@ This is old OT code; it's when I first started writing code to model the things 
 
 ## 2006 - Lisp
 
+Very basic OT learning implementation, as far as I can tell. From skimming it, I see it has several missing dependencies.
+
 - ot.lisp
 - constraints.lisp
 - testot.lisp
@@ -66,3 +68,12 @@ match the current version would be trivial since the Scheme code uses
 libraries very close to
 Common Lisp. (Well, maybe not so trivial for Python until you rewrite
 the Common Lisp sequence functions)
+
+### 2024 Notes
+
+I didn't find the contents of scmutil, but it seems to be largely a collection of aliases to make Scheme's syntax closer to Haskell's or Python's.
+
+After the previous section was written, I proceeded to write two more files. I included them in this section because the time between them wasn't that great, and they're tested in testot.scm with everything else.
+
+- rcd.scm - Recursive Constraint Demotion, plus variations
+- torder.scm - T-Orders
