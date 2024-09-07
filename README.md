@@ -83,3 +83,32 @@ After the previous section was written, I proceeded to write two more files. I i
 I played around briefly with Caml and decided not to pursue it. Instead, I switched to Python, which I knew well already.
 
 - rcd.ml - Recursive Constraint Demotion, part of it at least
+
+## 2006 - Python
+
+After the switch to Python, I called the suite of code I had written Hydrogen. I have no memory of why. Since I was back to writing Python, I included my personal utility library that I had been maintaining since 2004 or late 2003.
+
+I have a snapshot of these files from October 2006, but the versions preserved here are the latest ones, some of which I kept editing all the way through 2008. Examples are rcd.py, torder.py and lev.py.
+
+- hydrogen.py - import and run all the learning algorithms on test data
+- ot_learning/ - The test data
+- faith.py - faithfulness constraints
+- mark.py - markedness constraints
+- unifeat.py - map IPA to feature structure
+- test_unifeat.py - tests for unifeat
+- lev.py - levenshtein distance, *of course*
+- sexp.py - an S-expression reader for Python
+
+- rcd.py - Recursive Constraint Demotion
+- bcd.py - Biased Constraint Demotion
+- gla.py - Gradual Learning Algorithm
+- lfcd.py - Low-Faithfulness Constraint Demotion
+
+## 2007 - Python
+
+- ot.py - Mostly some t-order building blocks
+- torder.py - T-Orders
+
+## 2008 - Python
+
+- factorial.py - factorial typologies. See sandersn/ot-factorial
