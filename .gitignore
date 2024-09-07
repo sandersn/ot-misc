@@ -13,14 +13,26 @@ dist/
 *.zip
 *.dmg
 backup.log
+tmp.html
+torder.html
+# weird mistakes that I kept around for some reason
+*jones.ling.indiana.edu
+a.out
+TinyIllustrativeFile.txt
+access.pl
+document.xml
+test_korean.txt
+text.txt
 # already included
 ot-factorial/
 # I don't care about my attempt to generate Word-formatted tableaux
 word/
 # other people's code
 googlecode-upload.py
+ot
+otsoft.csv
 otableau*
-.otableau
+*.otableau
 TeX/
 wxint.py
 __init__.py
