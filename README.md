@@ -112,6 +112,9 @@ I have a snapshot of these files from October 2006, but the versions preserved h
 
 ## 2007 - Caml
 
-- constraints.ml
-- features.ml
-- lev.ml
+Another test port of work I had done.
+
+- constraints.ml - OT constraints, combining faithfulness and markedness
+- features.ml - map IPA to feature structure
+- lev.ml - levenshtein distance
+- ot.ml - test the above code

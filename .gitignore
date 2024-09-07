@@ -34,6 +34,8 @@ otsoft.csv
 otableau*
 *.otableau
 TeX/
+gmr/
+heiberg/
 wxint.py
 __init__.py
 __version__.py
