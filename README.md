@@ -77,3 +77,9 @@ After the previous section was written, I proceeded to write two more files. I i
 
 - rcd.scm - Recursive Constraint Demotion, plus variations
 - torder.scm - T-Orders
+
+## 2006 - Caml
+
+I played around briefly with Caml and decided not to pursue it. Instead, I switched to Python, which I knew well already.
+
+- rcd.ml - Recursive Constraint Demotion, part of it at least
