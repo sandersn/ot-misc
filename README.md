@@ -92,6 +92,7 @@ I have a snapshot of these files from October 2006, but the versions preserved h
 
 - hydrogen.py - import and run all the learning algorithms on test data
 - ot_learning/ - The test data
+- ot.py - building blocks for RCD and T-orders
 - faith.py - faithfulness constraints
 - mark.py - markedness constraints
 - unifeat.py - map IPA to feature structure
@@ -101,14 +102,16 @@ I have a snapshot of these files from October 2006, but the versions preserved h
 
 - rcd.py - Recursive Constraint Demotion
 - bcd.py - Biased Constraint Demotion
-- gla.py - Gradual Learning Algorithm
 - lfcd.py - Low-Faithfulness Constraint Demotion
+- gla.py - Gradual Learning Algorithm
 
 ## 2007 - Python
 
-- ot.py - Mostly some t-order building blocks
+- factorial.py - factorial typologies. See https://github.com/sandersn/ot-factorial
 - torder.py - T-Orders
 
-## 2008 - Python
+## 2007 - Caml
 
-- factorial.py - factorial typologies. See sandersn/ot-factorial
+- constraints.ml
+- features.ml
+- lev.ml

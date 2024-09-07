@@ -26,6 +26,7 @@ wxint.py
 __init__.py
 __version__.py
 setup.py
+contrib.py
 roa-321-heiberg-1.pdf
 settings.osx
 settings.ini
