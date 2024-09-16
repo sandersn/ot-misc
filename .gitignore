@@ -2,9 +2,11 @@
 .DS_Store
 _darcs/
 .svn/
+.koka/
 build/
 etc/
 dist/
+out/
 *.docx
 *.xls
 *.pyc
