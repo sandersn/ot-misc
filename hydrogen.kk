@@ -24,14 +24,14 @@ val methods = [
 ]
 // TODO: These constraints aren't actually used because RCD et al used pre-evaluated tableaux
 // that must be provided in the data file.
-pub val idasp = Constraint("Ident (asp)", fn (input, output) 0)
-pub val idvoice = Constraint("Ident (voice)", fn (input, output) 0)
-pub val idasp/v = Constraint("Ident (asp)/_V", fn (input, output) 0)
-pub val idvoice/v = Constraint("Ident (voice)/_V", fn (input, output) 0)
-pub val no-pvmvpv = Constraint("*[+v][-v][+v]", fn (input, output) 0)
-pub val no-dh = Constraint("*dh", fn (input, output) 0)
-pub val no-voiceobs = Constraint("*[-son/+voice]", fn (input, output) 0)
-pub val no-asp = Constraint("*aspiration", fn (input, output) 0)
+pub val idasp = Faith("Ident (asp)", fn (input, output) 0)
+pub val idvoice = Faith("Ident (voice)", fn (input, output) 0)
+pub val idasp/v = Faith("Ident (asp)/_V", fn (input, output) 0)
+pub val idvoice/v = Faith("Ident (voice)/_V", fn (input, output) 0)
+pub val no-pvmvpv = Faith("*[+v][-v][+v]", fn (input, output) 0)
+pub val no-dh = Faith("*dh", fn (input, output) 0)
+pub val no-voiceobs = Faith("*[-son/+voice]", fn (input, output) 0)
+pub val no-asp = Faith("*aspiration", fn (input, output) 0)
 val constraints: map<string, constraint> = [
   ("Ident (asp)", idasp),
   ("Ident (voice)", idvoice),

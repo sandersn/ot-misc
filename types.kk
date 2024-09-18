@@ -1,7 +1,7 @@
 module types
-pub value struct constraint 
-  name: string
-  eval: (string, string) -> int
+pub type constraint
+  pub Mark(name: string, mark: (string) -> int)
+  pub Faith(name: string, faith: (string, string) -> int)
 pub fun constraint/show(c: constraint)
   c.name
 pub fun constraint/(==)(c1: constraint, c2: constraint) : bool
