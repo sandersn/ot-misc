@@ -79,8 +79,7 @@ def title2col(titles):
     cols = map(con.get, titles)
     for i,title in enumerate(titles):
         try:
-            specificity[cols[i]] = cols[map(cur(specificlike,title),
-                                            titles).index(True)]
+            specificity[cols[i]] = cols[map(cur(specificlike,title), titles).index(True)]
         except ValueError:
             pass
     return cols
