@@ -9,8 +9,8 @@ pub fun transpose(rows: list<list<a>>, acc: list<list<a>> = []): div list<list<a
       try {
         rows.map(tail).transpose(Cons(column.map(fn (x) x.unjust), acc))
       } fn (e) acc
-pub fun iota(n: int, acc = []): div list<int>
-  if n <= 0
-    then acc
-    else iota(n - 1, Cons(n - 1, acc))
-
+// TODO: Only used in tests; inline this function
+pub fun iota(n: int, acc = []): list<int>
+  list(0, n - 1)
+pub fun count(l: list<a>, f: a -> bool): int
+  l.foldl(0, fn (acc, x) if f(x) then acc + 1 else acc)

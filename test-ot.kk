@@ -6,6 +6,8 @@ import list
 import str
 import ot
 import faith
+import unifeat
+import lev
 fun test(actual: a, expected: a, ?(==): (a, a) -> bool, ?show: a -> string): <console/console,exn> ()
   if actual == expected
     then print(".")
@@ -98,6 +100,12 @@ val testo = [
   Test("max-repair4", fn ()
     test(faith/max-repair("inkomai", "ikomati"),
          qw("ikomati inkomati"))
+  ),
+  Test("levenshtein-features", fn ()
+    test(flevenshtein(unifeat/unify("ap"),unifeat/unify("pbcdpe"),2),
+          [[0, 2, 4, 6, 8, 10, 12],
+          [2, 4, 6, 8,10, 12, 12],
+          [4, 2, 4, 6, 8, 10, 12]])
   ),
 ]
 pub fun main ()

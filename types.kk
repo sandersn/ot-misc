@@ -18,3 +18,20 @@ pub fun column/(==)(c1: column, c2: column) : bool
   c1.constraint == c2.constraint && c1.violations == c2.violations
 pub alias csv = list<list<string>>
 pub alias map<k,v> = list<(k,v)>
+pub value type feature-value
+  Yes
+  No
+  Place(place: string)
+pub alias feature = (string, feature-value)
+pub alias features = list<feature>
+pub fun feature-value/show(v: feature-value): string
+  match v
+    Yes -> "Yes"
+    No -> "No"
+    Place(s) -> s
+pub fun feature-value/(==)(v1: feature-value, v2: feature-value): bool
+  match (v1, v2)
+    (Yes, Yes) -> True
+    (No, No) -> True
+    (Place(s1), Place(s2)) -> s1 == s2
+    _ -> False
