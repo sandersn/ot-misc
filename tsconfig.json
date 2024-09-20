@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "noEmit": true,
+        "lib": ["esnext", "dom"],
+        "target": "esnext",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "strict": true,
+        "types": ["jest", "node"]
+    },
+    "include": ["src"]
+}
