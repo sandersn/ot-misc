@@ -1,14 +1,16 @@
 import { partition, transpose, zip, pickIndices } from "./util/array"
 import { Column, Strata } from './types'
 /**
- * A row is a loser when 
+ * A candidate is a loser when its promoted columns have a winning mark in them.
+ * If the promoted columns are all tied, then the candidate is not a loser, and
+ * the demoted columns are still interesting, so keep them. 
  */
 function removeLosersFromDemote(demote: Column[], promote: Column[]): Column[] {
     let ties = []
     for (let i = 0; i < promote[0].violations.length; i++) {
         let tied = true
         for (const p of promote) {
-            if (p.violations[i] !== 'e') {
+            if (p.violations[i] !== '=') {
                 tied = false
                 break
             }

@@ -29,7 +29,7 @@ function cmp(a: number, b: number): Erc {
     } else if (a < b) {
         return 'l'
     } else {
-        return 'e'
+        return '='
     }
 }
 export function absToERC(tableau: string[][]): Erc[][] {
@@ -44,7 +44,7 @@ function relativeToERC(violation: number): Erc {
     } else if (violation < 0) {
         return 'l'
     } else {
-        return 'e'
+        return '='
     }
 }
 export function absToRelative(tableau: string[][]): number[][] {

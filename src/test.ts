@@ -1,6 +1,20 @@
-import { absToRelative, readJsonViolations, idasp, idasp_v, idvoice, idvoice_v, noAsp, noDh, noVoiceobs, nopvmvpv } from "./hydrogen";
-import { rcd } from './rcd'
+import { strictEqual as eq, deepEqual as equal } from "node:assert";
+import {
+  absToRelative,
+  readJsonViolations,
+  idasp,
+  idasp_v,
+  idvoice,
+  idvoice_v,
+  noAsp,
+  noDh,
+  noVoiceobs,
+  nopvmvpv,
+} from "./hydrogen";
+import { rcd } from "./rcd";
+import { Mark, Faith } from "./types";
 import fs from "node:fs";
+import * as ot from "./ot";
 function testall(testo: Record<string, () => void>) {
   for (let [name, f] of Object.entries(testo)) {
     test(name, f);
@@ -19,23 +33,91 @@ testall({
       [1, 0, 1],
       [2, 0, -1],
     ];
-    expect(rel).toEqual(absToRelative(abs));
+    equal(rel, absToRelative(abs));
   },
   readJson() {
     const j = JSON.parse(
       fs.readFileSync("ot_learning/pseudo-korean.json", "utf8")
     );
-    expect(j.length).toBe(8);
+    eq(j.length, 8);
     for (let row of j) {
-      expect(row.length).toBe(105);
+      eq(row.length, 105);
     }
   },
   testAllMethods() {
-    expect(
-      rcd(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8")))
-    ).toStrictEqual([
-      [idasp, idvoice, idasp_v, idvoice_v, noDh],
-      [nopvmvpv, noVoiceobs, noAsp],
-    ]);
+    equal(
+      rcd(
+        readJsonViolations(
+          fs.readFileSync("ot_learning/pseudo-korean.json", "utf8")
+        )
+      ),
+      [
+        [idasp, idvoice, idasp_v, idvoice_v, noDh],
+        [nopvmvpv, noVoiceobs, noAsp],
+      ]
+    );
   },
+  testEval() {
+    eq(
+      ot.evaluate(
+        Mark("mark-length", (s) => s.length),
+        ["hi"]
+      ),
+      2
+    );
+    eq(
+      ot.evaluate(
+        Faith("faith-length", (x, y) => (x + y).length),
+        ["hi", "there"]
+      ),
+      7
+    );
+  },
+  // testBounds1() {
+  //   test(simply-bounds([2,0,0,0], [0,0,1,1]), False)
+  // },
+  // testBounds2() {
+  //   test(simply-bounds([0,0,1,2], [0,0,1,1]), True)
+  // },
+  // testBounds3() {
+  //   test(simply-bounds([2,0,0,0], [1,0,0,1]), False)
+  // },
+  // testBounds4() {
+  //   test(simply-bounds([0,0,1,1], [0,0,1,1]), False)
+  // },
+  // testBounds5() {
+  //   test(simply-bounds([2,0], [2,0]), False)
+  // },
+  // exclude1()  {
+  //   test(exclude(iota(5), []), [0,1,2,3,4])
+  // },
+  // exclude2()  {
+  //   test(exclude(iota(5), [0,4]), [1,2,3])
+  // },
+  // exclude3()  {
+  //   test(exclude(iota(5), [3]), [0,1,2,4])
+  // },
+  // exclude4()  {
+  //   // self.assertRaises(IndexError, faith.remove_ns, [], [0,4])
+  //   ()
+  // },
+  // exclude5()  {
+  //   test(exclude(iota(5), [0,1,2,3,4]), [])
+  // },
+  // maxRepair1() {
+  //   test(faith/max-repair("tinkomati", "inkomai"),
+  //        qw("inkomai tinkomai inkomati tinkomati"))
+  // },
+  // maxRepair2() {
+  //   test(faith/max-repair("inkomai", "komai"),
+  //        qw("ikomai nkomai inkomai komai"))
+  // },
+  // maxRepair3() {
+  //   test(faith/max-repair("inkomai", "komati"),
+  //        qw("ikomati nkomati inkomati komati"))
+  // },
+  // maxRepair4() {
+  //   test(faith/max-repair("inkomai", "ikomati"),
+  //        qw("ikomati inkomati"))
+  // },
 });

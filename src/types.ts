@@ -11,9 +11,9 @@ export type Mark = {
 /**
  * L = lose
  * W = win
- * E = equal
+ * = = equal, tied
  */
-export type Erc = 'l' | 'w' | 'e'
+export type Erc = 'l' | 'w' | '='
 export type Constraint = Faith | Mark
 export type Stratum = Constraint[]
 export type Strata = Stratum[]
@@ -34,4 +34,10 @@ export type Column = {
 export function Column(constraint: Constraint, violations: Erc[]): Column {
     return { constraint, violations }
 }
-
+export type MarkColumn = {
+    constraint: Constraint
+    violations: number[]
+}
+export function MarkColumn(constraint: Constraint, violations: number[]): MarkColumn {
+    return { constraint, violations }
+}
