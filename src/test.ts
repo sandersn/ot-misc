@@ -73,51 +73,26 @@ testall({
       7
     );
   },
-  // testBounds1() {
-  //   test(simply-bounds([2,0,0,0], [0,0,1,1]), False)
-  // },
-  // testBounds2() {
-  //   test(simply-bounds([0,0,1,2], [0,0,1,1]), True)
-  // },
-  // testBounds3() {
-  //   test(simply-bounds([2,0,0,0], [1,0,0,1]), False)
-  // },
-  // testBounds4() {
-  //   test(simply-bounds([0,0,1,1], [0,0,1,1]), False)
-  // },
-  // testBounds5() {
-  //   test(simply-bounds([2,0], [2,0]), False)
-  // },
-  // exclude1()  {
-  //   test(exclude(iota(5), []), [0,1,2,3,4])
-  // },
-  // exclude2()  {
-  //   test(exclude(iota(5), [0,4]), [1,2,3])
-  // },
-  // exclude3()  {
-  //   test(exclude(iota(5), [3]), [0,1,2,4])
-  // },
-  // exclude4()  {
-  //   // self.assertRaises(IndexError, faith.remove_ns, [], [0,4])
-  //   ()
-  // },
-  // exclude5()  {
-  //   test(exclude(iota(5), [0,1,2,3,4]), [])
-  // },
-  // maxRepair1() {
-  //   test(faith/max-repair("tinkomati", "inkomai"),
-  //        qw("inkomai tinkomai inkomati tinkomati"))
-  // },
-  // maxRepair2() {
-  //   test(faith/max-repair("inkomai", "komai"),
-  //        qw("ikomai nkomai inkomai komai"))
-  // },
-  // maxRepair3() {
-  //   test(faith/max-repair("inkomai", "komati"),
-  //        qw("ikomati nkomati inkomati komati"))
-  // },
-  // maxRepair4() {
-  //   test(faith/max-repair("inkomai", "ikomati"),
-  //        qw("ikomati inkomati"))
-  // },
+  testBounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),
+  testBounds2: () => eq(ot.simplyBounds([0, 0, 1, 2], [0, 0, 1, 1]), true),
+  testBounds3: () => eq(ot.simplyBounds([2, 0, 0, 0], [1, 0, 0, 1]), false),
+  testBounds4: () => eq(ot.simplyBounds([0, 0, 1, 1], [0, 0, 1, 1]), false),
+  testBounds5: () => eq(ot.simplyBounds([2, 0], [2, 0]), false),
+  maxRepair1: () =>
+    equal(
+      faith.maxRepair("tinkomati", "inkomai"),
+      qw("inkomai tinkomai inkomati tinkomati")
+    ),
+  maxRepair2: () =>
+    equal(
+      faith.maxRepair("inkomai", "komai"),
+      qw("ikomai nkomai inkomai komai")
+    ),
+  maxRepair3: () =>
+    equal(
+      faith.maxRepair("inkomai", "komati"),
+      qw("ikomati nkomati inkomati komati")
+    ),
+  maxRepair4: () =>
+    equal(faith.maxRepair("inkomai", "ikomati"), qw("ikomati inkomati")),
 });
