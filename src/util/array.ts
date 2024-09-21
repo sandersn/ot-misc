@@ -48,3 +48,11 @@ export function filterProxy<T, U>(l: T[], proxy: U[], f: (x: U) => boolean): T[]
     }
     return out
 }
+/** pick indices *in the order presented* in `indices` */
+export function pickIndices<T>(l: T[], indices: number[]): T[] {
+    let out = []
+    for (let i of indices) {
+        out.push(l[i])
+    }
+    return out
+}

@@ -1,4 +1,4 @@
-import { Column, Faith } from './types'
+import { Column, Faith, Erc } from './types'
 import { partition, zipWith } from './util/array'
 
 export let idasp = Faith("Ident (asp)", () => 0)
@@ -23,6 +23,30 @@ function parseViolation(vln: string): number {
     let v = vln.trim()
     return v == "" ? 0 : parseInt(v)
 }
+function cmp(a: number, b: number): Erc {
+    if (a > b) {
+        return 'w'
+    } else if (a < b) {
+        return 'l'
+    } else {
+        return 'e'
+    }
+}
+export function absToERC(tableau: string[][]): Erc[][] {
+    let violations = tableau.map(line => line.slice(2).map(parseViolation))
+    let [winners, rivals] = partition(violations, line => line[0] > 0)
+    let winner = winners[0].slice(1)
+    return rivals.map(rival => zipWith(rival.slice(1), winner, cmp))
+}
+function relativeToERC(violation: number): Erc {
+    if (violation > 0) {
+        return 'w'
+    } else if (violation < 0) {
+        return 'l'
+    } else {
+        return 'e'
+    }
+}
 export function absToRelative(tableau: string[][]): number[][] {
     let violations = tableau.map(line => line.slice(2).map(parseViolation))
     let [winners, rivals] = partition(violations, line => line[0] > 0)
@@ -30,6 +54,6 @@ export function absToRelative(tableau: string[][]): number[][] {
     return rivals.map(rival => zipWith(rival.slice(1), winner, (r, w) => r - w))
 }
 export function readJsonViolations(json: string): Column[] {
-    return zipWith(Object.values(constraints), JSON.parse(json), Column)
+    return zipWith(Object.values(constraints), JSON.parse(json) as number[][], (k,column) => Column(k, column.map(relativeToERC)))
 }
 
