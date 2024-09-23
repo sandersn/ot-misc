@@ -41,3 +41,25 @@ export type MarkColumn = {
 export function MarkColumn(constraint: Constraint, violations: number[]): MarkColumn {
   return { constraint, violations };
 }
+export let features = [
+  "cons",
+  "son",
+  "strid",
+  "voice",
+  "round",
+  "contin",
+  "ATR",
+  "RTR",
+  "high",
+  "low",
+  "back",
+  "approx",
+  "nasal",
+  "spread gl",
+  "constr gl",
+  "anterior",
+  "lateral",
+  "place",
+  "boundary",
+] as const;
+export type Feature = Partial<Record<(typeof features)[number], boolean | "labial" | 'coronal' | 'dorsal'>>;
