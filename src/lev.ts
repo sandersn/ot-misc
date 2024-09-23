@@ -9,7 +9,7 @@ function _levenshtein<T>(
   indel: number,
   del: (t: T) => number,
   insert: (t: T) => number,
-  substitute: (t1: T, t2: T) => number
+  substitute: (t1: T, t2: T) => number,
 ): Table {
   let prev = [];
   for (let i = 0; i < s2.length + 1; i++) {
@@ -20,7 +20,7 @@ function _levenshtein<T>(
     let row = [indel * (i + 1)];
     for (let j = 0; j < s2.length; j++) {
       row.push(
-        Math.min(prev[j + 1] + del(s1[i]), prev[j] + substitute(s1[i], s2[j]), row[row.length - 1] + insert(s2[j]))
+        Math.min(prev[j + 1] + del(s1[i]), prev[j] + substitute(s1[i], s2[j]), row[row.length - 1] + insert(s2[j])),
       );
     }
     table.push(row);
@@ -54,7 +54,7 @@ export function flevenshtein(dst: Feature[], src: Feature[], averageDistance: nu
     averageDistance,
     _ => averageDistance,
     _ => averageDistance,
-    featureDistance
+    featureDistance,
   );
 }
 export function optimal(table: Table): Array<[Operation, [number, number]]> {

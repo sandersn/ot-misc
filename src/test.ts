@@ -54,16 +54,16 @@ testall("General OT tests", {
     eq(
       ot.evaluate(
         Mark("mark-length", s => s.length),
-        ["hi"]
+        ["hi"],
       ),
-      2
+      2,
     );
     eq(
       ot.evaluate(
         Faith("faith-length", (x, y) => (x + y).length),
-        ["hi", "there"]
+        ["hi", "there"],
       ),
-      7
+      7,
     );
   },
   bounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),
@@ -113,7 +113,7 @@ testall("General OT tests", {
         ["insert", [2, 3]],
         ["insert", [2, 4]],
         ["insert", [2, 5]],
-      ]
+      ],
     );
   },
   levenshteinRealistic() {
@@ -141,7 +141,7 @@ testall("General OT tests", {
         ["insert", [1, 3]],
         ["substitute", [1, 4]],
         ["insert", [2, 5]],
-      ]
+      ],
     );
   },
 });
