@@ -1,8 +1,7 @@
-import { Feature } from "./types";
-import * as map from "./util/map";
+import { Phoneme } from "./types";
 
-type Table = number[][];
-type Operation = "insert" | "delete" | "substitute";
+export type Table = number[][];
+export type Operation = "insert" | "delete" | "substitute";
 function _levenshtein<T>(
   s1: T[],
   s2: T[],
@@ -28,7 +27,7 @@ function _levenshtein<T>(
   }
   return table;
 }
-export function featureDistance(dst: Feature, src: Feature): number {
+export function featureDistance(dst: Phoneme, src: Phoneme): number {
   let total = 0;
   for (let d in dst) {
     if (d in src && (dst as any)[d] !== (src as any)[d]) {
@@ -47,7 +46,7 @@ export function featureDistance(dst: Feature, src: Feature): number {
   }
   return total;
 }
-export function flevenshtein(dst: Feature[], src: Feature[], averageDistance: number): Table {
+export function flevenshtein(dst: Phoneme[], src: Phoneme[], averageDistance: number): Table {
   return _levenshtein(
     dst,
     src,
@@ -55,6 +54,16 @@ export function flevenshtein(dst: Feature[], src: Feature[], averageDistance: nu
     _ => averageDistance,
     _ => averageDistance,
     featureDistance,
+  );
+}
+export function levenshtein(dst: string, src: string): Table {
+  return _levenshtein<unknown>(
+    dst as unknown as string[], // use a cast instead of string.split("")
+    src as unknown as string[],
+    1,
+    _ => 1,
+    _ => 1,
+    (c1, c2) => (c1 === c2 ? 0 : 2),
   );
 }
 export function optimal(table: Table): Array<[Operation, [number, number]]> {

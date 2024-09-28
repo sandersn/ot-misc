@@ -19,7 +19,7 @@ function markToERC(candidates: number[], bounds: number[]): Erc[] {
  */
 export function simplyBounds(candidates: number[], bounds: number[], anyWinner = false): boolean {
   const erc = markToERC(candidates, bounds);
-  return erc.some(c => c === "w") && erc.every((c, i) => c !== "l");
+  return erc.some(c => c === "w") && erc.every(c => c !== "l");
   /*
     ## Old code is more efficient, but harder to read: ##
     if (candidates.length !== bounds.length) {
@@ -35,4 +35,29 @@ export function simplyBounds(candidates: number[], bounds: number[], anyWinner =
     }
     return anyWinner;
     */
+}
+
+export function genRepair(input: string, marks: Array<(output: string) => string[]>, faiths: Array<(input: string, output: string) => string[]>): Set<string> {
+  let outputs = new Set([input])
+  while (true) {
+    let sizeBefore = outputs.size
+    for (const mark of marks) {
+      for (const output of outputs) {
+        for (const newo of mark(output)) {
+          outputs.add(newo)
+        }
+      }
+    }
+    for (const faith of faiths) {
+      for (const output of outputs) {
+        for (const newo of faith(input, output)) {
+          outputs.add(newo)
+        }
+      }
+    }
+    if (sizeBefore === outputs.size) {
+      break
+    }
+  }
+  return outputs
 }

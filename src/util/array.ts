@@ -56,3 +56,19 @@ export function pickIndices<T>(l: T[], indices: number[]): T[] {
     }
     return out
 }
+
+export function sequence<T>(ls: T[][]): T[][] {
+    if (ls.length == 0) {
+        return [[]]
+    } else {
+        let [head, ...tail] = ls
+        let rests = sequence(tail)
+        let acc = []
+        for (let x of head) {
+            for (let rest of rests) {
+                acc.push([x, ...rest])
+            }
+        }
+        return acc
+    }
+}

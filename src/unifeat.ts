@@ -1,5 +1,5 @@
-import { Feature } from "./types";
-export function phonesToFeatures(phones: string | string[]): Feature[] {
+import { Phoneme } from "./types";
+export function phonesToFeatures(phones: string | string[]): Phoneme[] {
   if (typeof phones === "string") {
     phones = phones.split("");
   }
@@ -10,7 +10,7 @@ export function phonesToFeatures(phones: string | string[]): Feature[] {
     }
   });
 }
-export let phonemes: Record<string, Feature> = {
+export let phonemes: Record<string, Phoneme> = {
   p: { cons: true, son: false, place: "labial", voice: false, contin: false, approx: false },
   b: { cons: true, son: false, place: "labial", voice: true, contin: false, approx: false },
   t: { cons: true, son: false, place: "coronal", voice: false, contin: false, approx: false, anterior: true },

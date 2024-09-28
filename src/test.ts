@@ -17,10 +17,18 @@ import { Mark, Faith } from "./types";
 import fs from "node:fs";
 import * as ot from "./ot";
 import * as faith from "./faith";
+import * as mark from "./mark";
 import * as lev from "./lev";
 import { phonemes, phonesToFeatures } from "./unifeat";
 function qw(s: string): string[] {
   return s.split(/\s+/);
+}
+function* pairs(ss: string[]) {
+  for (let s1 of ss) {
+    for (let s2 of ss) {
+      yield [s1, s2] as const;
+    }
+  }
 }
 testall("General OT tests", {
   absToRelative() {
@@ -54,16 +62,16 @@ testall("General OT tests", {
     eq(
       ot.evaluate(
         Mark("mark-length", s => s.length),
-        ["hi"],
+        ["hi"]
       ),
-      2,
+      2
     );
     eq(
       ot.evaluate(
         Faith("faith-length", (x, y) => (x + y).length),
-        ["hi", "there"],
+        ["hi", "there"]
       ),
-      7,
+      7
     );
   },
   bounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),
@@ -83,11 +91,19 @@ testall("General OT tests", {
       qw("a b c"),
     ]),
   powerset0: () => equal(faith.powerset([]), [[]]),
-  // TODO: lev should be done before faith and mark.
-  // maxRepair1: () => equal(faith.maxRepair("tinkomati", "inkomai"), qw("inkomai tinkomai inkomati tinkomati")),
-  // maxRepair2: () => equal(faith.maxRepair("inkomai", "komai"), qw("ikomai nkomai inkomai komai")),
-  // maxRepair3: () => equal(faith.maxRepair("inkomai", "komati"), qw("ikomati nkomati inkomati komati")),
-  // maxRepair4: () => equal(faith.maxRepair("inkomai", "ikomati"), qw("ikomati inkomati")),
+  maxRepair1: () => equal(faith.maxRepair("tinkomati", "inkomai"), qw("inkomai tinkomai inkomati tinkomati")),
+  maxRepair2: () => equal(faith.maxRepair("inkomai", "komai"), qw("komai ikomai nkomai inkomai")),
+  maxRepair3: () => equal(faith.maxRepair("inkomai", "komati"), qw("komati ikomati nkomati inkomati")),
+  // TODO: I don't think this result is right. I need to re-read what MAX/repair is supposed to do.
+  maxRepair4: () => equal(faith.maxRepair("inkomai", "ikomati"), qw("ikomati inkomati")),
+  depRepair1: () => equal(faith.depRepair("inkomai", "komati"), qw("komati komai")),
+  depRepair2: () => equal(faith.depRepair("inkomai", "inkomati"), qw("inkomati inkomai")),
+  depRepair3: () => equal(faith.depRepair("inkomai", "tinkomati"), qw("tinkomati inkomati tinkomai inkomai")),
+  depRepair4: () => equal(faith.depRepair("inkomai", "komai"), qw("komai")),
+  depRepair5: () => equal(faith.depRepair("", "foo"), [...qw("foo oo fo o fo o f"), ""]),
+  onset() {
+    equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
+  },
   "featureDistance(a,e) is 0.5 + 0.5": () => eq(lev.featureDistance(phonemes["a"], phonemes["e"]), 1),
   "featureDistance(a,a) is 0": () => eq(lev.featureDistance(phonemes["a"], phonemes["a"]), 0),
   "feature levenshtein(ap,pbcdpe)"() {
@@ -96,6 +112,18 @@ testall("General OT tests", {
       [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0],
       [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 11.0],
       [4.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0],
+    ]);
+  },
+  charLevenshtein() {
+    equal(lev.levenshtein("ab_de=", "ab@d"), [
+      [0, 1, 2, 3, 4],
+      [1, 0, 1, 2, 3], // a
+      [2, 1, 0, 1, 2], // b
+      [3, 2, 1, 2, 3], // _
+      [4, 3, 2, 3, 2], // d
+      [5, 4, 3, 4, 3], // e
+      [6, 5, 4, 5, 4], // =
+      //  a  b  @  d
     ]);
   },
   levenshteinOptimalPath() {
@@ -113,8 +141,17 @@ testall("General OT tests", {
         ["insert", [2, 3]],
         ["insert", [2, 4]],
         ["insert", [2, 5]],
-      ],
+      ]
     );
+  },
+  "optimal path is reflexive"() {
+    for (let [s1, s2] of pairs(qw("i am the eggman you are a walrus googookachoo"))) {
+      let onetwo = lev.optimal(lev.levenshtein(s1, s2));
+      let twoone = lev
+        .optimal(lev.levenshtein(s2, s1))
+        .map(([op, [i, j]]) => [op === "insert" ? "delete" : op === "delete" ? "insert" : op, [j, i]] as const);
+      equal(onetwo, twoone);
+    }
   },
   levenshteinRealistic() {
     equal(lev.flevenshtein(phonesToFeatures("ət"), phonesToFeatures("tʃʊɪtʰ"), 3.286924), [
@@ -141,7 +178,97 @@ testall("General OT tests", {
         ["insert", [1, 3]],
         ["substitute", [1, 4]],
         ["insert", [2, 5]],
-      ],
+      ]
     );
+  },
+  syllabify() {
+    equal(mark.syllabify(phonesToFeatures("inkomai")), [
+      [
+        {
+          ATR: true,
+          approx: true,
+          back: false,
+          cons: false,
+          contin: true,
+          high: true,
+          low: false,
+          round: false,
+          son: true,
+        },
+        {
+          anterior: true,
+          approx: false,
+          cons: true,
+          contin: false,
+          nasal: true,
+          place: "coronal",
+          son: true,
+          voice: true,
+        },
+      ],
+      [
+        { approx: false, back: true, cons: true, contin: false, place: "dorsal", son: false, voice: false },
+        {
+          ATR: true,
+          approx: true,
+          back: true,
+          cons: false,
+          contin: true,
+          high: false,
+          low: false,
+          round: true,
+          son: true,
+        },
+      ],
+      [
+        { approx: false, cons: true, contin: false, nasal: true, place: "labial", son: true, voice: true },
+        {
+          ATR: false,
+          approx: true,
+          back: false,
+          cons: false,
+          contin: true,
+          high: false,
+          low: true,
+          round: false,
+          son: true,
+        },
+      ],
+      [
+        {
+          ATR: true,
+          approx: true,
+          back: false,
+          cons: false,
+          contin: true,
+          high: true,
+          low: false,
+          round: false,
+          son: true,
+        },
+      ],
+    ]);
+  },
+  genRepair() {
+    equal(ot.genRepair("inkomai", [mark.onsetRepair], [faith.depRepair, faith.depInitRepair, faith.maxRepair]), new Set([
+      "inkomai",
+      "inkoma",
+      "inkomati",
+      "komai",
+      "koma",
+      "komati",
+      "tinkomai",
+      "tikoma",
+      "nkomati",
+      "nkomai",
+      "tikomati",
+      "ikomati",
+      "tinkomati",
+      "tinkoma",
+      "tikomai",
+      "ikoma",
+      "ikomai",
+      "nkoma",
+    ]));
   },
 });

@@ -62,4 +62,4 @@ export let features = [
   "place",
   "boundary",
 ] as const;
-export type Feature = Partial<Record<(typeof features)[number], boolean | "labial" | "coronal" | "dorsal">>;
+export type Phoneme = Partial<Record<(typeof features)[number], boolean | "labial" | "coronal" | "dorsal">>;
