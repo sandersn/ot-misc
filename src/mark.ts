@@ -1,8 +1,11 @@
 import * as unifeat from "./unifeat";
-import { Phoneme } from "./types";
-import { zipWith, sequence } from "./util/array";
+import { Phoneme, Mark } from "./types";
+import { zipWith, count, sequence } from "./util/array";
 
 unifeat.phonemes;
+export let onset = Mark("onset", (output: string) => {
+  return count(syllabify(unifeat.phonesToFeatures(output)), syll => !syll[0]["cons"]);
+})
 export function onsetRepair(output: string): string[] {
   function recreateSyllables(syllables: Phoneme[][]): string[] {
     let i = 0;

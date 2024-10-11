@@ -63,3 +63,10 @@ export let features = [
   "boundary",
 ] as const;
 export type Phoneme = Partial<Record<(typeof features)[number], boolean | "labial" | "coronal" | "dorsal">>;
+export type Tree<T> = {
+  value: T;
+  kids: Tree<T>[];
+};
+export function Tree<T>(value: T, kids: Tree<T>[] = []): Tree<T> {
+  return { value, kids };
+}

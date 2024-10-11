@@ -72,3 +72,13 @@ export function sequence<T>(ls: T[][]): T[][] {
         return acc
     }
 }
+
+export function count<T>(l: T[], f: (x: T) => boolean): number {
+    let i = 0
+    for (let x of l) {
+        if (f(x)) {
+            i++
+        }
+    }
+    return i
+}

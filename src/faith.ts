@@ -1,4 +1,10 @@
 import { levenshtein, optimal, type Operation } from "./lev";
+import { Faith } from './types'
+import { count } from "./util/array";
+// TODO: optimal, levenshtein and probably syllabify and unifeat need to be memoised
+export let maxIO = Faith("maxIO", (input, output) => count(optimal(levenshtein(input, output)), ([op, _]) => op === "delete"))
+export let depIO = Faith("depIO", (input, output) => count(optimal(levenshtein(input, output)), ([op, _]) => op === "insert"))
+export let depInitSigma = Faith("depInitSigma", (input, output) => optimal(levenshtein(input, output))[0][0] == "insert" ? 1 : 0)
 /**
  * Generate a list of edits that will work on `output`, based on the edit operations needed to turn `input` into `output`.
  * MAX constraints only turn deletes into inserts, and DEP constraints only turn inserts into deletes.
