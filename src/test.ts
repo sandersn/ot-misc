@@ -332,9 +332,9 @@ testall("General OT tests", {
         ]
       )
     );
-    eq(ot.isBounded([2,0,0,0], tree), false)
-    eq(ot.isBounded([0,0,0,2], tree), false)
-    let bounders = zip(winners, winnerProfiles).filter(([_, profile]) => !ot.isBounded(profile, tree))
+    eq(ot.isBounded([2, 0, 0, 0], tree), false);
+    eq(ot.isBounded([0, 0, 0, 2], tree), false);
+    let bounders = zip(winners, winnerProfiles).filter(([_, profile]) => !ot.isBounded(profile, tree));
     equal(bounders, [
       ["inkomai", [2, 0, 0, 0]],
       ["inkoma", [1, 0, 0, 1]],
@@ -351,6 +351,207 @@ testall("General OT tests", {
       ["tikomai", [1, 1, 1, 1]],
     ]);
     // a candidate set whose tree-bounded candidates are removed will produce the same bounding tree
-    equal(ot.boundingTree(winnerProfiles.filter(profile => !ot.isBounded(profile, tree))), tree)
+    equal(ot.boundingTree(winnerProfiles.filter(profile => !ot.isBounded(profile, tree))), tree);
+  },
+  candidateTree() {
+    equal(
+      ot.candidateTree([
+        ["cost][us", [1, 1, 0, 0, 0]],
+        ["cos]t[us", [0, 1, 0, 0, 1]],
+        ["cos][tus", [0, 0, 1, 0, 0]],
+      ]),
+      Tree(
+        [
+          [
+            ["cost][us", [1, 1, 0, 0, 0]],
+            ["cos]t[us", [0, 1, 0, 0, 1]],
+            ["cos][tus", [0, 0, 1, 0, 0]],
+          ],
+          [1, 1, 1, 0, 1],
+        ],
+        [
+          Tree(
+            [
+              [
+                ["cos]t[us", [1, 0, 0, 1]],
+                ["cos][tus", [0, 1, 0, 0]],
+              ],
+              [1, 1, 0, 1],
+            ],
+            [
+              Tree([[["cos][tus", [1, 0, 0]]], []]),
+              Tree([[["cos]t[us", [1, 0, 1]]], []]),
+              Tree(
+                [
+                  [
+                    ["cos]t[us", [1, 0, 1]],
+                    ["cos][tus", [0, 1, 0]],
+                  ],
+                  [1, 1, 1],
+                ],
+                [
+                  Tree([[["cos][tus", [1, 0]]], []]),
+                  Tree([[["cos]t[us", [1, 1]]], []]),
+                  Tree([[["cos][tus", [0, 1]]], []]),
+                ],
+              ),
+              Tree([[["cos][tus", [0, 1, 0]]], []]),
+            ],
+          ),
+          Tree([[["cos][tus", [0, 1, 0, 0]]], []]),
+          Tree(
+            [
+              [
+                ["cost][us", [1, 1, 0, 0]],
+                ["cos]t[us", [0, 1, 0, 1]],
+              ],
+              [1, 1, 0, 1],
+            ],
+            [
+              Tree([[["cos]t[us", [1, 0, 1]]], []]),
+              Tree(
+                [
+                  [
+                    ["cost][us", [1, 0, 0]],
+                    ["cos]t[us", [0, 0, 1]],
+                  ],
+                  [1, 0, 1],
+                ],
+                [
+                  Tree([[["cos]t[us", [0, 1]]], []]),
+                  Tree(
+                    [
+                      [
+                        ["cost][us", [1, 0]],
+                        ["cos]t[us", [0, 1]],
+                      ],
+                      [1, 1],
+                    ],
+                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])],
+                  ),
+                  Tree([[["cost][us", [1, 0]]], []]),
+                ],
+              ),
+              Tree(
+                [
+                  [
+                    ["cost][us", [1, 1, 0]],
+                    ["cos]t[us", [0, 1, 1]],
+                  ],
+                  [1, 1, 1],
+                ],
+                [
+                  Tree([[["cos]t[us", [1, 1]]], []]),
+                  Tree(
+                    [
+                      [
+                        ["cost][us", [1, 0]],
+                        ["cos]t[us", [0, 1]],
+                      ],
+                      [1, 1],
+                    ],
+                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])],
+                  ),
+                  Tree([[["cost][us", [1, 1]]], []]),
+                ],
+              ),
+              Tree([[["cost][us", [1, 1, 0]]], []]),
+            ],
+          ),
+          Tree(
+            [
+              [
+                ["cost][us", [1, 1, 0, 0]],
+                ["cos]t[us", [0, 1, 0, 1]],
+                ["cos][tus", [0, 0, 1, 0]],
+              ],
+              [1, 1, 1, 1],
+            ],
+            [
+              Tree(
+                [
+                  [
+                    ["cos]t[us", [1, 0, 1]],
+                    ["cos][tus", [0, 1, 0]],
+                  ],
+                  [1, 1, 1],
+                ],
+                [
+                  Tree([[["cos][tus", [1, 0]]], []]),
+                  Tree([[["cos]t[us", [1, 1]]], []]),
+                  Tree([[["cos][tus", [0, 1]]], []]),
+                ]
+              ),
+              Tree([[["cos][tus", [0, 1, 0]]], []]),
+              Tree(
+                [
+                  [
+                    ["cost][us", [1, 1, 0]],
+                    ["cos]t[us", [0, 1, 1]],
+                  ],
+                  [1, 1, 1],
+                ],
+                [
+                  Tree([[["cos]t[us", [1, 1]]], []]),
+                  Tree(
+                    [
+                      [
+                        ["cost][us", [1, 0]],
+                        ["cos]t[us", [0, 1]],
+                      ],
+                      [1, 1],
+                    ],
+                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])]
+                  ),
+                  Tree([[["cost][us", [1, 1]]], []]),
+                ]
+              ),
+              Tree(
+                [
+                  [
+                    ["cost][us", [1, 1, 0]],
+                    ["cos][tus", [0, 0, 1]],
+                  ],
+                  [1, 1, 1],
+                ],
+                [
+                  Tree([[["cos][tus", [0, 1]]], []]),
+                  Tree([[["cos][tus", [0, 1]]], []]),
+                  Tree([[["cost][us", [1, 1]]], []]),
+                ]
+              ),
+            ]
+          ),
+          Tree(
+            [
+              [
+                ["cost][us", [1, 1, 0, 0]],
+                ["cos][tus", [0, 0, 1, 0]],
+              ],
+              [1, 1, 1, 0],
+            ],
+            [
+              Tree([[["cos][tus", [0, 1, 0]]], []]),
+              Tree([[["cos][tus", [0, 1, 0]]], []]),
+              Tree([[["cost][us", [1, 1, 0]]], []]),
+              Tree(
+                [
+                  [
+                    ["cost][us", [1, 1, 0]],
+                    ["cos][tus", [0, 0, 1]],
+                  ],
+                  [1, 1, 1],
+                ],
+                [
+                  Tree([[["cos][tus", [0, 1]]], []]),
+                  Tree([[["cos][tus", [0, 1]]], []]),
+                  Tree([[["cost][us", [1, 1]]], []]),
+                ]
+              ),
+            ]
+          ),
+        ],
+      )
+    );
   },
 });
