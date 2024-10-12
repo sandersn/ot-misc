@@ -124,17 +124,17 @@ export function isBounded(candidate: number[], tree: Tree<number[]>): boolean {
   );
 }
 
-// TODO: Normalise [string, number[]][] with the existing types in types.ts
+// TODO: convert [string, number[]][] to Array<{ name: string, violations: number[] }> and compare to types in type.ts
 export function candidateTree(tab: [string, number[]][]): Tree<[[string, number[]][], number[]]> {
   if (tab.length === 1) {
     // TODO: Python returns `tab[0]` for the value's name, which is ill-typed (I'm not sure this case is ever tested or even possible)
     return { value: [tab, []], kids: [] };
   }
-  if (tab[0][1].length === 1) {
-    return { value: [tab, [boundingSet(tab.map(row => row[1][0])).best]], kids: [] };
+  if (violations(tab[0]).length === 1) {
+    return { value: [tab, [boundingSet(tab.map(row => violations(row)[0])).best]], kids: [] };
   }
   // TODO: Avoid transpose the same way I did elsewhere, earlier
-  let bounder = transpose(tab.map(row => row[1])).map(boundingSet);
+  let bounder = transpose(tab.map(violations)).map(boundingSet);
   return {
     value: [tab, bounder.map(b => b.best)],
     kids: bounder.map((b, i) =>
@@ -142,16 +142,17 @@ export function candidateTree(tab: [string, number[]][]): Tree<[[string, number[
         updateTuples(
           rows => removeColumn(rows, i),
           tab.filter(([_, row]) => row[i] === b.best - b.different),
-          1 // TODO: This is just hard-coded 'violations' index (1) instead of 'name' (0)
         )
       )
     ),
   };
 }
-// TODO: This code exists solely to update tuples. Translate this into a spread, or even a mutation (pretty sure everything here is extremely fresh)
-export function updateTuples(f: (rows: number[][]) => number[][], ts: [string, number[]][], i: number): [string, number[]][] {
-  return zip(f(ts.map(t => t[i] as number[])), ts).map(([x, t]) => updateTuple(x,t,i))
+function violations(row: [string, number[]]) {
+  return row[1]
 }
-export function updateTuple(x: number[], t: [string, number[]], i: number): [string, number[]] {
-  return t.map((y, j) => (j === i ? x : y)) as [string, number[]];
+function name(row: [string, number[]]) {
+  return row[0]
+}
+function updateTuples(f: (rows: number[][]) => number[][], ts: [string, number[]][]): [string, number[]][] {
+  return zip(ts.map(name), f(ts.map(violations)))
 }
