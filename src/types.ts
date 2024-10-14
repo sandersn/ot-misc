@@ -8,22 +8,78 @@ export type Mark = {
   name: string;
   eval(input: string): number;
 };
-/**
- * L = lose
- * W = win
- * = = equal, tied
- */
-export type Erc = "l" | "w" | "=";
 export type Constraint = Faith | Mark;
 export type Stratum = Constraint[];
 export type Strata = Stratum[];
+export type Stress = "primary" | "secondary" | "unstressed";
+/**
+ * Stress only applies to overt and parsed forms. It's undefined for underlying forms.
+ * L = light
+ * H = heavy
+ */
+export type Syllable = {
+  weight: "l" | "h";
+  stress: Stress | undefined;
+};
+export type Foot = {
+  s1: Syllable;
+  s2?: Syllable;
+};
+/**
+ * Additional rules:
+ * - Unfooted syllables must be unstressed.
+ * - Head foot must have primary stress; other feet must have secondary.
+ * - Each foot has exactly one head syllable, which is the only stressed one in that foot.
+ */
+export type ProsodicWord = {
+  head: Foot;
+  feet: (Foot | Syllable)[];
+};
+// TODO: Unify these with normal faith/mark once I have a good representation for each
+export type StressFaith = {
+  kind: "faith";
+  name: string;
+  evaluate(overt: Syllable[], parse: ProsodicWord): number;
+  parse(overt: Syllable[], parse: ProsodicWord): ProsodicWord;
+  generate(underlying: Syllable[], parse: ProsodicWord): ProsodicWord[];
+};
+export type StressMark = {
+  kind: "mark";
+  name: string;
+  evaluate(overt: Syllable[]): number;
+  parse(overt: Syllable[]): ProsodicWord;
+  generate(underlying: Syllable[]): ProsodicWord[];
+};
+export type StressConstraint = StressMark | StressFaith;
 export function Faith(name: string, faith: (input: string, output: string) => number): Faith {
   return { kind: "faith", name, eval: faith };
 }
 export function Mark(name: string, mark: (input: string) => number): Mark {
   return { kind: "mark", name, eval: mark };
 }
+export function StressFaith(
+  name: string,
+  evaluate: (overt: Syllable[], parse: ProsodicWord) => number,
+  parse: (overt: Syllable[], parse: ProsodicWord) => ProsodicWord,
+  generate: (underlying: Syllable[], parse: ProsodicWord) => ProsodicWord[]
+): StressFaith {
+  return { kind: "faith", name, evaluate, parse, generate };
+}
+export function StressMark(
+  name: string,
+  evaluate: (overt: Syllable[]) => number,
+  parse: (overt: Syllable[]) => ProsodicWord,
+  generate: (underlying: Syllable[]) => ProsodicWord[]
+): StressMark {
+  return { kind: "mark", name, evaluate, parse, generate };
+}
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
+/**
+ * L = lose
+ * W = win
+ * = = equal, tied
+ */
+export type Erc = "l" | "w" | "=";
 /**
  * Column of a tableau, relative to another column
  */

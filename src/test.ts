@@ -1,6 +1,6 @@
 import { testall } from "./util/testing";
 import { zip } from "./util/array";
-import { strictEqual as eq, deepEqual as equal } from "node:assert";
+import assert, { strictEqual as eq, deepEqual as equal, fail } from "node:assert";
 import {
   absToRelative,
   readJsonViolations,
@@ -14,7 +14,7 @@ import {
   nopvmvpv,
 } from "./hydrogen";
 import { rcd } from "./rcd";
-import { Mark, Faith, Tree } from "./types";
+import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress } from "./types";
 import fs from "node:fs";
 import * as ot from "./ot";
 import * as faith from "./faith";
@@ -106,6 +106,30 @@ testall("General OT tests", {
   onset() {
     equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
   },
+  footBinEvaluateEmpty() {
+    // let head: Foot = { s1: { stress: "primary", weight: 'l' }, s2: { stress: "unstressed", weight: 'l' } };
+    equal(mark.footBin.evaluate([]), 0);
+  },
+  footBinParseEmpty() {
+    equal(mark.footBin.parse([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
+  },
+  footBinParseOneLight() {
+    equal(mark.footBin.parse(stressOvert("'.")), {
+      head: { s1: { stress: undefined, weight: "l" }, s2: undefined },
+      feet: [{ stress: "primary", weight: "l" }],
+    });
+  },
+  footBinParseOneHeavy: markFootBinParse("'_", "('_)"),
+  footBinParseTwo: markFootBinParse("'..", "('..)"),
+  footBinParseThree: markFootBinParse("'...", "('..)."),
+  footBinParseFour: markFootBinParse("'....", "('..)(..)"),
+  footBinParseFive: markFootBinParse("'.....", "('..)(..)."),
+  footBinParseSix: markFootBinParse("'......", "('..)(..)(..)"),
+  footBinParseSixStressFinal: markFootBinParse(".....'.", "(..)(..)(.'.)"),
+  footBinEvaluateOneHeavy: markFootBinEval("_", 0),
+  footBinEvaluateOneLight: markFootBinEval(".", 1),
+  footBinEvaluateFive: markFootBinEval("..'...", 1),
+  footBinEvaluateSix: markFootBinEval("..'....", 0),
   "featureDistance(a,e) is 0.5 + 0.5": () => eq(lev.featureDistance(phonemes["a"], phonemes["e"]), 1),
   "featureDistance(a,a) is 0": () => eq(lev.featureDistance(phonemes["a"], phonemes["a"]), 0),
   "feature levenshtein(ap,pbcdpe)"() {
@@ -394,10 +418,10 @@ testall("General OT tests", {
                   Tree([[["cos][tus", [1, 0]]], []]),
                   Tree([[["cos]t[us", [1, 1]]], []]),
                   Tree([[["cos][tus", [0, 1]]], []]),
-                ],
+                ]
               ),
               Tree([[["cos][tus", [0, 1, 0]]], []]),
-            ],
+            ]
           ),
           Tree([[["cos][tus", [0, 1, 0, 0]]], []]),
           Tree(
@@ -428,10 +452,10 @@ testall("General OT tests", {
                       ],
                       [1, 1],
                     ],
-                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])],
+                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])]
                   ),
                   Tree([[["cost][us", [1, 0]]], []]),
-                ],
+                ]
               ),
               Tree(
                 [
@@ -451,13 +475,13 @@ testall("General OT tests", {
                       ],
                       [1, 1],
                     ],
-                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])],
+                    [Tree([[["cos]t[us", [1]]], []]), Tree([[["cost][us", [1]]], []])]
                   ),
                   Tree([[["cost][us", [1, 1]]], []]),
-                ],
+                ]
               ),
               Tree([[["cost][us", [1, 1, 0]]], []]),
-            ],
+            ]
           ),
           Tree(
             [
@@ -551,8 +575,69 @@ testall("General OT tests", {
               ),
             ]
           ),
-        ],
+        ]
       )
     );
   },
 });
+
+function markFootBinParse(overt: string, word: string): () => void {
+  return () => equal(mark.footBin.parse(stressOvert(overt)), prosodicWord(word));
+}
+function markFootBinEval(overt: string, count: number): () => void {
+  return () => equal(mark.footBin.evaluate(stressOvert(overt)), count);
+}
+function stressOvert(stress: string): Syllable[] {
+  assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns");
+  return stressPattern(stress) as Syllable[];
+}
+function prosodicWord(stress: string): ProsodicWord {
+  let feet = stressPattern(stress);
+  // TODO: This will need to allow manual specification of the head's index eventually
+  let head = feet.find(f => "s1" in f) || fail("no feet in prosodic word");
+  return { head, feet };
+}
+/** ('..)
+ * . light
+ * _ heavy
+ * ' primary stress
+ * , secondary stress
+ * ( start of foot
+ * ) end of foot
+ */
+function stressPattern(stress: string): (Syllable | Foot)[] {
+  let nextStress: Stress = "unstressed";
+  let foot: Syllable[] | undefined;
+  let syllables: (Syllable | Foot)[] = [];
+  for (let i = 0; i < stress.length; i++) {
+    switch (stress[i]) {
+      case "'":
+        nextStress = "primary";
+        break;
+      case ",":
+        nextStress = "secondary";
+        break;
+      case ".":
+      case "_":
+        (foot ? foot : syllables).push({ stress: nextStress, weight: stress[i] === "." ? "l" : "h" });
+        nextStress = "unstressed";
+        break;
+      case "(":
+        assert(!foot, "open parenthesis inside unclosed open parenthesis");
+        foot = [];
+        break;
+      case ")":
+        assert(foot, "close parenthesis without open parenthesis");
+        if (foot.length === 1) {
+          syllables.push({ s1: foot[0] });
+        } else if (foot.length === 2) {
+          syllables.push({ s1: foot[0], s2: foot[1] });
+        } else {
+          fail("foot too long" + foot.length);
+        }
+        foot = undefined;
+        break;
+    }
+  }
+  return syllables;
+}
