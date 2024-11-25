@@ -13,7 +13,7 @@ import {
   nopvmvpv,
 } from "./hydrogen";
 import { rcd } from "./rcd";
-import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress } from "./types";
+import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress, isFoot } from "./types";
 import fs from "node:fs";
 import * as ot from "./ot";
 import * as faith from "./faith";
@@ -81,43 +81,6 @@ testall("General OT tests", {
     ]),
   powerset0: () => equal(faith.powerset([]), [[]]),
   // My comments in ot-factorial say that the tinkomati example is from Axininca Campa, in McCarthy's Thematic Guide to OT.
-  maxRepair1: () => equal(faith.maxRepair("tinkomati", "inkomai"), qw("inkomai tinkomai inkomati tinkomati")),
-  maxRepair2: () => equal(faith.maxRepair("inkomai", "komai"), qw("komai ikomai nkomai inkomai")),
-  maxRepair3: () => equal(faith.maxRepair("inkomai", "komati"), qw("komati ikomati nkomati inkomati")),
-  // TODO: I don't think this result is right. I need to re-read what MAX/repair is supposed to do.
-  maxRepair4: () => equal(faith.maxRepair("inkomai", "ikomati"), qw("ikomati inkomati")),
-  depRepair1: () => equal(faith.depRepair("inkomai", "komati"), qw("komati komai")),
-  depRepair2: () => equal(faith.depRepair("inkomai", "inkomati"), qw("inkomati inkomai")),
-  depRepair3: () => equal(faith.depRepair("inkomai", "tinkomati"), qw("tinkomati inkomati tinkomai inkomai")),
-  depRepair4: () => equal(faith.depRepair("inkomai", "komai"), qw("komai")),
-  depRepair5: () => equal(faith.depRepair("", "foo"), [...qw("foo oo fo o fo o f"), ""]),
-  onset() {
-    equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
-  },
-  footBinEvaluateEmpty() {
-    // let head: Foot = { s1: { stress: "primary", weight: 'l' }, s2: { stress: "unstressed", weight: 'l' } };
-    equal(mark.footBin.evaluate([]), 0);
-  },
-  footBinParseEmpty() {
-    equal(mark.footBin.parse([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
-  },
-  footBinParseOneLight() {
-    equal(mark.footBin.parse(stressOvert("'.")), {
-      head: { s1: { stress: undefined, weight: "l" }, s2: undefined },
-      feet: [{ stress: "primary", weight: "l" }],
-    });
-  },
-  footBinParseOneHeavy: markFootBinParse("'_", "('_)"),
-  footBinParseTwo: markFootBinParse("'..", "('..)"),
-  footBinParseThree: markFootBinParse("'...", "('..)."),
-  footBinParseFour: markFootBinParse("'....", "('..)(..)"),
-  footBinParseFive: markFootBinParse("'.....", "('..)(..)."),
-  footBinParseSix: markFootBinParse("'......", "('..)(..)(..)"),
-  footBinParseSixStressFinal: markFootBinParse(".....'.", "(..)(..)(.'.)"),
-  footBinEvaluateOneHeavy: markFootBinEval("_", 0),
-  footBinEvaluateOneLight: markFootBinEval(".", 1),
-  footBinEvaluateFive: markFootBinEval("..'...", 1),
-  footBinEvaluateSix: markFootBinEval("..'....", 0),
   syllabify() {
     equal(mark.syllabify(phonesToFeatures("inkomai")), [
       [
@@ -186,13 +149,63 @@ testall("General OT tests", {
       ],
     ]);
   },
+  maxRepair1: () => equal(faith.maxRepair("tinkomati", "inkomai"), qw("inkomai tinkomai inkomati tinkomati")),
+  maxRepair2: () => equal(faith.maxRepair("inkomai", "komai"), qw("komai ikomai nkomai inkomai")),
+  maxRepair3: () => equal(faith.maxRepair("inkomai", "komati"), qw("komati ikomati nkomati inkomati")),
+  // TODO: I don't think this result is right. I need to re-read what MAX/repair is supposed to do.
+  maxRepair4: () => equal(faith.maxRepair("inkomai", "ikomati"), qw("ikomati inkomati")),
+  depRepair1: () => equal(faith.depRepair("inkomai", "komati"), qw("komati komai")),
+  depRepair2: () => equal(faith.depRepair("inkomai", "inkomati"), qw("inkomati inkomai")),
+  depRepair3: () => equal(faith.depRepair("inkomai", "tinkomati"), qw("tinkomati inkomati tinkomai inkomai")),
+  depRepair4: () => equal(faith.depRepair("inkomai", "komai"), qw("komai")),
+  depRepair5: () => equal(faith.depRepair("", "foo"), [...qw("foo oo fo o fo o f"), ""]),
+  onset() {
+    equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
+  },
+  footBinEvaluateEmpty() {
+    // let head: Foot = { s1: { stress: "primary", weight: 'l' }, s2: { stress: "unstressed", weight: 'l' } };
+    equal(mark.footBin.evaluate([]), 0);
+  },
+  footBinParseEmpty() {
+    equal(mark.footBin.parse([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
+  },
+  footBinParseOneLight() {
+    equal(mark.footBin.parse(stressOvert("'.")), {
+      head: { s1: { stress: undefined, weight: "l" }, s2: undefined },
+      feet: [{ stress: "primary", weight: "l" }],
+    });
+  },
+  footBinParseOneHeavy: markFootBinParse("'_", "('_)"),
+  footBinParseTwo: markFootBinParse("'..", "('..)"),
+  footBinParseThree: markFootBinParse("'...", "('..)."),
+  footBinParseFour: markFootBinParse("'....", "('..)(..)"),
+  footBinParseFive: markFootBinParse("'.....", "('..)(..)."),
+  footBinParseSix: markFootBinParse("'......", "('..)(..)(..)"),
+  footBinParseSixStressFinal: markFootBinParse(".....'.", "(..)(..)(.'.)"),
+  footBinEvaluateOneHeavy: markFootBinEval("_", 0),
+  footBinEvaluateOneLight: markFootBinEval(".", 1),
+  footBinEvaluateFive: markFootBinEval("..'...", 1),
+  footBinEvaluateSix: markFootBinEval("..'....", 0),
+  markWspEvaluateEmpty: markWspEval("", 0),
+  markWspEvaluateHeavyPrimary: markWspEval("'_", 0),
+  markWspEvaluateHeavySecondary: markWspEval("`_", 0),
+  markWspEvaluateHeavyUnstressed: markWspEval("_", 1),
+  markWspEvaluateLightUnstressed: markWspEval(".", 0),
+  markWspEvaluateLightPrimary: markWspEval("'.", 0),
+  markWspEvaluateHeavyLight: markWspEval(".'_.", 0),
+  markWspEvaluateHeavyLightUnstressed: markWspEval("._.", 1),
+  markWspEvaluateMultipleHeavyUnstressed: markWspEval("__._.", 3),
+  markWspEvaluateMultipleHeavyMixed: markWspEval("__.`_.", 2),
 });
-
+// TODO: Can probably abstract these over constraints (as long as they never use `this`)
 function markFootBinParse(overt: string, word: string): () => void {
   return () => equal(mark.footBin.parse(stressOvert(overt)), prosodicWord(word));
 }
 function markFootBinEval(overt: string, count: number): () => void {
   return () => equal(mark.footBin.evaluate(stressOvert(overt)), count);
+}
+function markWspEval(overt: string, count: number): () => void {
+  return () => equal(mark.wsp.evaluate(stressOvert(overt)), count);
 }
 function stressOvert(stress: string): Syllable[] {
   assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns");
@@ -201,7 +214,7 @@ function stressOvert(stress: string): Syllable[] {
 function prosodicWord(stress: string): ProsodicWord {
   let feet = stressPattern(stress);
   // TODO: This will need to allow manual specification of the head's index eventually
-  let head = feet.find(f => "s1" in f) || fail("no feet in prosodic word");
+  let head = feet.find(isFoot) || fail("no feet in prosodic word");
   return { head, feet };
 }
 /** ('..)

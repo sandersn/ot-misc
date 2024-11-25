@@ -4,7 +4,8 @@
   "description": "Optimality Theory implementations",
   "main": "src/index.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write src/**"
   },
   "repository": {
     "type": "git",

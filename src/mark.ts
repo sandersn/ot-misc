@@ -1,5 +1,5 @@
 import * as unifeat from "./unifeat";
-import { Phoneme, Mark, StressMark, Syllable, Foot } from "./types";
+import { Phoneme, Mark, StressMark, Syllable, Foot, isSyllable, isFoot } from "./types";
 import { zipWith, count, sequence } from "./util/array";
 
 unifeat.phonemes;
@@ -123,7 +123,7 @@ export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
   evaluate(overt) {
-    return count(this.parse(overt).feet, f => !("s1" in f));
+    return count(this.parse(overt).feet, isSyllable);
   },
   /**
    * NOTE: Empty strings return an illegal head (no stress at all).
@@ -145,7 +145,7 @@ export let footBin: StressMark = {
         feet.push({ s1: overt[i], s2: overt[i + 1] });
       }
     }
-    if (feet.length && "s1" in feet[0]) head = feet[0];
+    if (feet.length && isFoot(feet[0])) head = feet[0];
     return { head, feet };
   },
   generate(underlying) {
@@ -153,3 +153,16 @@ export let footBin: StressMark = {
     return [{ head: { s1: { weight: "l", stress: "primary" }, s2: { weight: "l", stress: "unstressed" } }, feet: [] }];
   },
 };
+export let wsp: StressMark = {
+  kind: "mark",
+  name: "WSP",
+  evaluate(overt) {
+    return count(overt, s => s.weight === "h" && s.stress === "unstressed");
+  },
+  /** Don't use this! It's not needed and results are wrong */
+  parse(overt) {
+    let head: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
+    return { head, feet: [] };
+  },
+  generate: _ => [] // TODO
+}

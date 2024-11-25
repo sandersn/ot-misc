@@ -26,6 +26,12 @@ export type Foot = {
   s1: Syllable;
   s2?: Syllable;
 };
+export function isFoot(s: Foot | Syllable): s is Foot {
+  return "s1" in s;
+}
+export function isSyllable(s: Foot | Syllable): s is Syllable {
+  return "weight" in s;
+}
 /**
  * Additional rules:
  * - Unfooted syllables must be unstressed.
