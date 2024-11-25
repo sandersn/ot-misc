@@ -46,7 +46,7 @@ export function simplyBounds(candidates: number[], bounds: number[], anyWinner =
 export function genRepair(
   input: string,
   marks: Array<(output: string) => string[]>,
-  faiths: Array<(input: string, output: string) => string[]>
+  faiths: Array<(input: string, output: string) => string[]>,
 ): Set<string> {
   let outputs = new Set([input]);
   while (true) {
@@ -103,9 +103,9 @@ export function boundingTree(tab: number[][]): Tree<number[]> {
       boundingTree(
         removeColumn(
           tab.filter(row => row[i] === b.best - b.different),
-          i
-        )
-      )
+          i,
+        ),
+      ),
     ),
   };
 }
@@ -142,17 +142,17 @@ export function candidateTree(tab: [string, number[]][]): Tree<[[string, number[
         updateTuples(
           rows => removeColumn(rows, i),
           tab.filter(([_, row]) => row[i] === b.best - b.different),
-        )
-      )
+        ),
+      ),
     ),
   };
 }
 function violations(row: [string, number[]]) {
-  return row[1]
+  return row[1];
 }
 function name(row: [string, number[]]) {
-  return row[0]
+  return row[0];
 }
 function updateTuples(f: (rows: number[][]) => number[][], ts: [string, number[]][]): [string, number[]][] {
-  return zip(ts.map(name), f(ts.map(violations)))
+  return zip(ts.map(name), f(ts.map(violations)));
 }

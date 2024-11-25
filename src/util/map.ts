@@ -22,11 +22,14 @@ export function filterValues<V>(m: Record<string, V>, f: (v: V) => boolean): Rec
   return out;
 }
 export function map() {}
-export function zipwithValues<T,U,V>(m1: Record<string, T>, m2: Record<string, U>, f: (t: T, u: U) => V): Record<string, V> {
+export function zipwithValues<T, U, V>(
+  m1: Record<string, T>,
+  m2: Record<string, U>,
+  f: (t: T, u: U) => V,
+): Record<string, V> {
   let out: Record<string, V> = {};
   for (let [k, v1] of Object.entries(m1)) {
-    if (k in m2)
-      out[k] = f(v1, m2[k]);
+    if (k in m2) out[k] = f(v1, m2[k]);
   }
   return out;
 }

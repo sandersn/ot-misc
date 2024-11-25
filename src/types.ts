@@ -11,6 +11,7 @@ export type Mark = {
 export type Constraint = Faith | Mark;
 export type Stratum = Constraint[];
 export type Strata = Stratum[];
+/// stress types ///
 export type Stress = "primary" | "secondary" | "unstressed";
 /**
  * Stress only applies to overt and parsed forms. It's undefined for underlying forms.
@@ -28,8 +29,8 @@ export type Foot = {
 /**
  * Additional rules:
  * - Unfooted syllables must be unstressed.
- * - Head foot must have primary stress; other feet must have secondary.
  * - Each foot has exactly one head syllable, which is the only stressed one in that foot.
+ * - Head foot's head syllable must have primary stress; other feet's head syllables must have secondary.
  */
 export type ProsodicWord = {
   head: Foot;
@@ -51,6 +52,7 @@ export type StressMark = {
   generate(underlying: Syllable[]): ProsodicWord[];
 };
 export type StressConstraint = StressMark | StressFaith;
+
 export function Faith(name: string, faith: (input: string, output: string) => number): Faith {
   return { kind: "faith", name, eval: faith };
 }
@@ -61,7 +63,7 @@ export function StressFaith(
   name: string,
   evaluate: (overt: Syllable[], parse: ProsodicWord) => number,
   parse: (overt: Syllable[], parse: ProsodicWord) => ProsodicWord,
-  generate: (underlying: Syllable[], parse: ProsodicWord) => ProsodicWord[]
+  generate: (underlying: Syllable[], parse: ProsodicWord) => ProsodicWord[],
 ): StressFaith {
   return { kind: "faith", name, evaluate, parse, generate };
 }
@@ -69,7 +71,7 @@ export function StressMark(
   name: string,
   evaluate: (overt: Syllable[]) => number,
   parse: (overt: Syllable[]) => ProsodicWord,
-  generate: (underlying: Syllable[]) => ProsodicWord[]
+  generate: (underlying: Syllable[]) => ProsodicWord[],
 ): StressMark {
   return { kind: "mark", name, evaluate, parse, generate };
 }

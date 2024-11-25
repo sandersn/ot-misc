@@ -21,14 +21,14 @@ export function onsetRepair(output: string): string[] {
   let epenthesise = (syllable: string) => "t" + syllable;
   let syllables = syllabify(unifeat.phonesToFeatures(output));
   let opss: ((s: string) => string)[][] = sequence(
-    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise]))
+    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise])),
   );
   // TODO: Hacky that the inner algorithm is in syllables but the outer is in strings. It was just easier to test, I bet.
   let syllables2 = recreateSyllables(syllables);
   return opss.map(ops =>
     zipWith(ops, syllables2, (op, syll) => op(syll))
       .flat()
-      .join("")
+      .join(""),
   );
 }
 /**
@@ -123,10 +123,12 @@ export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
   evaluate(overt) {
-    return this.parse(overt).feet.filter(f => !("s1" in f)).length;
+    return count(this.parse(overt).feet, f => !("s1" in f));
   },
   /**
    * NOTE: Empty strings return an illegal head (no stress at all).
+   * NOTE: This parser doesn't generate stress or heads, since they're not needed for evaluation.
+   *   After implementing a couple more constraints I'll know whether a shared parser is sensible.
    * TODO: I'm not certain that "unfooted" is the same as "degenerate foot", so maybe I should be generating degenerate feet instead.
    */
   parse(overt) {
