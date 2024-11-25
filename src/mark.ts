@@ -1,5 +1,5 @@
 import * as unifeat from "./unifeat";
-import { Phoneme, Mark, StressMark, Syllable, Foot, isSyllable, isFoot } from "./types";
+import { Phoneme, Mark, StressMark, Syllable, Foot, isSyllable, isFoot, ProsodicWord } from "./types";
 import { zipWith, count, sequence } from "./util/array";
 
 unifeat.phonemes;
@@ -119,38 +119,39 @@ export function syllabify(phs: Phoneme[]): Phoneme[][] {
     }
   }
 }
+/**
+ * NOTE: Empty strings return an illegal head (no stress at all).
+ * NOTE: This parser doesn't generate stress or heads, since they're not needed for evaluation.
+ *   After implementing a couple more constraints I'll know whether a shared parser is sensible.
+ * TODO: I'm not certain that "unfooted" is the same as "degenerate foot", so maybe I should be generating degenerate feet instead.
+ */
+export function parseStress(overt: Syllable[]): ProsodicWord {
+  let head: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
+  let feet: (Foot | Syllable)[] = [];
+  for (let i = 0; i < overt.length; i += 2) {
+    if (i + 1 >= overt.length) {
+      if (overt[i].weight === "h") {
+        feet.push({ s1: overt[i] });
+      } else {
+        feet.push(overt[i]);
+      }
+    } else {
+      if (overt[i].stress === "unstressed" && overt[i + 1].stress === "unstressed") {
+        feet.push(overt[i]);
+        feet.push(overt[i + 1]);
+      } else {
+      feet.push({ s1: overt[i], s2: overt[i + 1] });
+      }
+    }
+  }
+  head = feet?.find(isFoot) ?? head
+  return { head, feet };
+}
 export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
   evaluate(overt) {
-    return count(this.parse(overt).feet, isSyllable);
-  },
-  /**
-   * NOTE: Empty strings return an illegal head (no stress at all).
-   * NOTE: This parser doesn't generate stress or heads, since they're not needed for evaluation.
-   *   After implementing a couple more constraints I'll know whether a shared parser is sensible.
-   * TODO: I'm not certain that "unfooted" is the same as "degenerate foot", so maybe I should be generating degenerate feet instead.
-   */
-  parse(overt) {
-    let head: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
-    let feet: (Foot | Syllable)[] = [];
-    for (let i = 0; i < overt.length; i += 2) {
-      if (i + 1 >= overt.length) {
-        if (overt[i].weight === "h") {
-          feet.push({ s1: overt[i] });
-        } else {
-          feet.push(overt[i]);
-        }
-      } else {
-        feet.push({ s1: overt[i], s2: overt[i + 1] });
-      }
-    }
-    if (feet.length && isFoot(feet[0])) head = feet[0];
-    return { head, feet };
-  },
-  generate(underlying) {
-    // TODO: (I don't have a use for generate yet)
-    return [{ head: { s1: { weight: "l", stress: "primary" }, s2: { weight: "l", stress: "unstressed" } }, feet: [] }];
+    return count(parseStress(overt).feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === "l");
   },
 };
 export let wsp: StressMark = {
@@ -159,10 +160,11 @@ export let wsp: StressMark = {
   evaluate(overt) {
     return count(overt, s => s.weight === "h" && s.stress === "unstressed");
   },
-  /** Don't use this! It's not needed and results are wrong */
-  parse(overt) {
-    let head: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
-    return { head, feet: [] };
+};
+export let parse: StressMark = {
+  kind: "mark",
+  name: "Parse",
+  evaluate(overt) {
+    return count(parseStress(overt).feet, isSyllable);
   },
-  generate: _ => [] // TODO
-}
+};

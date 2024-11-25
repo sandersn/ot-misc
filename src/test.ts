@@ -13,7 +13,7 @@ import {
   nopvmvpv,
 } from "./hydrogen";
 import { rcd } from "./rcd";
-import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress, isFoot } from "./types";
+import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress, isFoot, StressConstraint, StressMark } from "./types";
 import fs from "node:fs";
 import * as ot from "./ot";
 import * as faith from "./faith";
@@ -162,50 +162,50 @@ testall("General OT tests", {
   onset() {
     equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
   },
-  footBinEvaluateEmpty() {
+  markParseStressEvaluateEmpty() {
     // let head: Foot = { s1: { stress: "primary", weight: 'l' }, s2: { stress: "unstressed", weight: 'l' } };
     equal(mark.footBin.evaluate([]), 0);
   },
-  footBinParseEmpty() {
-    equal(mark.footBin.parse([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
+  markParseStressEmpty() {
+    equal(mark.parseStress([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
   },
-  footBinParseOneLight() {
-    equal(mark.footBin.parse(stressOvert("'.")), {
+  markParseStressParseOneLight() {
+    equal(mark.parseStress(stressOvert("'.")), {
       head: { s1: { stress: undefined, weight: "l" }, s2: undefined },
       feet: [{ stress: "primary", weight: "l" }],
     });
   },
-  footBinParseOneHeavy: markFootBinParse("'_", "('_)"),
-  footBinParseTwo: markFootBinParse("'..", "('..)"),
-  footBinParseThree: markFootBinParse("'...", "('..)."),
-  footBinParseFour: markFootBinParse("'....", "('..)(..)"),
-  footBinParseFive: markFootBinParse("'.....", "('..)(..)."),
-  footBinParseSix: markFootBinParse("'......", "('..)(..)(..)"),
-  footBinParseSixStressFinal: markFootBinParse(".....'.", "(..)(..)(.'.)"),
-  footBinEvaluateOneHeavy: markFootBinEval("_", 0),
-  footBinEvaluateOneLight: markFootBinEval(".", 1),
-  footBinEvaluateFive: markFootBinEval("..'...", 1),
-  footBinEvaluateSix: markFootBinEval("..'....", 0),
-  markWspEvaluateEmpty: markWspEval("", 0),
-  markWspEvaluateHeavyPrimary: markWspEval("'_", 0),
-  markWspEvaluateHeavySecondary: markWspEval("`_", 0),
-  markWspEvaluateHeavyUnstressed: markWspEval("_", 1),
-  markWspEvaluateLightUnstressed: markWspEval(".", 0),
-  markWspEvaluateLightPrimary: markWspEval("'.", 0),
-  markWspEvaluateHeavyLight: markWspEval(".'_.", 0),
-  markWspEvaluateHeavyLightUnstressed: markWspEval("._.", 1),
-  markWspEvaluateMultipleHeavyUnstressed: markWspEval("__._.", 3),
-  markWspEvaluateMultipleHeavyMixed: markWspEval("__.`_.", 2),
+  footBinParseOneHeavy: markParseStress("'_", "('_)"),
+  footBinParseTwo: markParseStress("'..", "('..)"),
+  footBinParseThree: markParseStress("'...", "('..)."),
+  footBinParseFour: markParseStress("'....", "('..).."),
+  footBinParseFive: markParseStress("'.....", "('..)..."),
+  footBinParseSix: markParseStress("'......", "('..)...."),
+  footBinParseSixStressFinal: markParseStress(".....'.", "....(.'.)"),
+  parseEvaluateOneHeavy: markEval(mark.parse, "_", 0),
+  parseEvaluateOneLight: markEval(mark.parse, ".", 1),
+  parseEvaluateFive: markEval(mark.parse, "..'...", 3),
+  parseEvaluateSix: markEval(mark.parse, "..'....", 4),
+  footBinEvaluateOneHeavy: markEval(mark.footBin, "_", 0),
+  footBinEvaluateOneLight: markEval(mark.footBin, ".", 0),
+  footBinEvaluateFive: markEval(mark.footBin, "..'...", 0),
+  footBinEvaluateSix: markEval(mark.footBin, "..'....", 0),
+  markWspEvaluateEmpty: markEval(mark.wsp, "", 0),
+  markWspEvaluateHeavyPrimary: markEval(mark.wsp, "'_", 0),
+  markWspEvaluateHeavySecondary: markEval(mark.wsp, "`_", 0),
+  markWspEvaluateHeavyUnstressed: markEval(mark.wsp, "_", 1),
+  markWspEvaluateLightUnstressed: markEval(mark.wsp, ".", 0),
+  markWspEvaluateLightPrimary: markEval(mark.wsp, "'.", 0),
+  markWspEvaluateHeavyLight: markEval(mark.wsp, ".'_.", 0),
+  markWspEvaluateHeavyLightUnstressed: markEval(mark.wsp, "._.", 1),
+  markWspEvaluateMultipleHeavyUnstressed: markEval(mark.wsp, "__._.", 3),
+  markWspEvaluateMultipleHeavyMixed: markEval(mark.wsp, "__.`_.", 2),
 });
-// TODO: Can probably abstract these over constraints (as long as they never use `this`)
-function markFootBinParse(overt: string, word: string): () => void {
-  return () => equal(mark.footBin.parse(stressOvert(overt)), prosodicWord(word));
+function markEval(constraint: StressMark, overt: string, count: number): () => void {
+  return () => equal(constraint.evaluate(stressOvert(overt)), count);
 }
-function markFootBinEval(overt: string, count: number): () => void {
-  return () => equal(mark.footBin.evaluate(stressOvert(overt)), count);
-}
-function markWspEval(overt: string, count: number): () => void {
-  return () => equal(mark.wsp.evaluate(stressOvert(overt)), count);
+function markParseStress(overt: string, word: string): () => void {
+  return () => equal(mark.parseStress(stressOvert(overt)), prosodicWord(word));
 }
 function stressOvert(stress: string): Syllable[] {
   assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns");

@@ -47,15 +47,15 @@ export type StressFaith = {
   kind: "faith";
   name: string;
   evaluate(overt: Syllable[], parse: ProsodicWord): number;
-  parse(overt: Syllable[], parse: ProsodicWord): ProsodicWord;
-  generate(underlying: Syllable[], parse: ProsodicWord): ProsodicWord[];
+  // parse(overt: Syllable[], parse: ProsodicWord): ProsodicWord;
+  // generate(underlying: Syllable[], parse: ProsodicWord): ProsodicWord[];
 };
 export type StressMark = {
   kind: "mark";
   name: string;
   evaluate(overt: Syllable[]): number;
-  parse(overt: Syllable[]): ProsodicWord;
-  generate(underlying: Syllable[]): ProsodicWord[];
+  // parse(overt: Syllable[]): ProsodicWord;
+  // generate(underlying: Syllable[]): ProsodicWord[];
 };
 export type StressConstraint = StressMark | StressFaith;
 
@@ -65,21 +65,11 @@ export function Faith(name: string, faith: (input: string, output: string) => nu
 export function Mark(name: string, mark: (input: string) => number): Mark {
   return { kind: "mark", name, eval: mark };
 }
-export function StressFaith(
-  name: string,
-  evaluate: (overt: Syllable[], parse: ProsodicWord) => number,
-  parse: (overt: Syllable[], parse: ProsodicWord) => ProsodicWord,
-  generate: (underlying: Syllable[], parse: ProsodicWord) => ProsodicWord[],
-): StressFaith {
-  return { kind: "faith", name, evaluate, parse, generate };
+export function StressFaith(name: string, evaluate: (overt: Syllable[], parse: ProsodicWord) => number): StressFaith {
+  return { kind: "faith", name, evaluate };
 }
-export function StressMark(
-  name: string,
-  evaluate: (overt: Syllable[]) => number,
-  parse: (overt: Syllable[]) => ProsodicWord,
-  generate: (underlying: Syllable[]) => ProsodicWord[],
-): StressMark {
-  return { kind: "mark", name, evaluate, parse, generate };
+export function StressMark(name: string, evaluate: (overt: Syllable[]) => number): StressMark {
+  return { kind: "mark", name, evaluate };
 }
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
 /**
