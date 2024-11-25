@@ -5,3 +5,7 @@ export function testall(suiteName: string, testo: Record<string, () => void>) {
     }
   });
 }
+
+export function qw(s: string): string[] {
+  return s.split(/\s+/);
+}
