@@ -247,6 +247,6 @@ export let allFeetRight: StressMark = {
         i++
       }
     }
-    return count(parseStress(overt).feet, sf => isFoot(sf) && sf.s1.weight === "h")
+    return rightEdgeCount
   },
 }

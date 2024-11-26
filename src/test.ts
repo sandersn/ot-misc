@@ -202,9 +202,9 @@ testall("General OT tests", {
   afrEvalOneLight: markEval(mark.allFeetRight, "'.", 0),
   afrEvalOneHeavy: markEval(mark.allFeetRight, "'_", 0),
   afrEvalTwo: markEval(mark.allFeetRight, "'..", 0),
-  afrEvalFourOneStress: markEval(mark.allFeetRight, "..'..", 0),
+  afrEvalFourOneStress: markEval(mark.allFeetRight, "..'..", 1),
   afrEvalFourTwoStress: markEval(mark.allFeetRight, "'..'..", 2),
-  afrEvalFiveTwoStressInitial: markEval(mark.allFeetRight, "'...'..", 3),
+  afrEvalFiveTwoStressInitial: markEval(mark.allFeetRight, "'...'..", 4),
   afrEvalFiveTwoStress: markEval(mark.allFeetRight, ".'..'..", 4),
 })
 let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
