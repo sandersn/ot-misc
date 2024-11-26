@@ -1,36 +1,36 @@
 export type Faith = {
-  kind: "faith";
-  name: string;
-  eval(input: string, output: string): number;
-};
+  kind: "faith"
+  name: string
+  eval(input: string, output: string): number
+}
 export type Mark = {
-  kind: "mark";
-  name: string;
-  eval(input: string): number;
-};
-export type Constraint = Faith | Mark;
-export type Stratum = Constraint[];
-export type Strata = Stratum[];
+  kind: "mark"
+  name: string
+  eval(input: string): number
+}
+export type Constraint = Faith | Mark
+export type Stratum = Constraint[]
+export type Strata = Stratum[]
 /// stress types ///
-export type Stress = "primary" | "secondary" | "unstressed";
+export type Stress = "primary" | "secondary" | "unstressed"
 /**
  * Stress only applies to overt and parsed forms. It's undefined for underlying forms.
  * L = light
  * H = heavy
  */
 export type Syllable = {
-  weight: "l" | "h";
-  stress: Stress | undefined;
-};
+  weight: "l" | "h"
+  stress: Stress | undefined
+}
 export type Foot = {
-  s1: Syllable;
-  s2?: Syllable;
-};
+  s1: Syllable
+  s2?: Syllable
+}
 export function isFoot(s: Foot | Syllable): s is Foot {
-  return "s1" in s;
+  return "s1" in s
 }
 export function isSyllable(s: Foot | Syllable): s is Syllable {
-  return "weight" in s;
+  return "weight" in s
 }
 /**
  * Additional rules:
@@ -39,37 +39,37 @@ export function isSyllable(s: Foot | Syllable): s is Syllable {
  * - Head foot's head syllable must have primary stress; other feet's head syllables must have secondary.
  */
 export type ProsodicWord = {
-  head: Foot;
-  feet: (Foot | Syllable)[];
-};
+  head: Foot
+  feet: (Foot | Syllable)[]
+}
 // TODO: Unify these with normal faith/mark once I have a good representation for each
 export type StressFaith = {
-  kind: "faith";
-  name: string;
-  evaluate(overt: Syllable[], parse: ProsodicWord): number;
+  kind: "faith"
+  name: string
+  evaluate(overt: Syllable[], parse: ProsodicWord): number
   // parse(overt: Syllable[], parse: ProsodicWord): ProsodicWord;
   // generate(underlying: Syllable[], parse: ProsodicWord): ProsodicWord[];
-};
+}
 export type StressMark = {
-  kind: "mark";
-  name: string;
-  evaluate(overt: Syllable[]): number;
+  kind: "mark"
+  name: string
+  evaluate(overt: Syllable[]): number
   // parse(overt: Syllable[]): ProsodicWord;
   // generate(underlying: Syllable[]): ProsodicWord[];
-};
-export type StressConstraint = StressMark | StressFaith;
+}
+export type StressConstraint = StressMark | StressFaith
 
 export function Faith(name: string, faith: (input: string, output: string) => number): Faith {
-  return { kind: "faith", name, eval: faith };
+  return { kind: "faith", name, eval: faith }
 }
 export function Mark(name: string, mark: (input: string) => number): Mark {
-  return { kind: "mark", name, eval: mark };
+  return { kind: "mark", name, eval: mark }
 }
 export function StressFaith(name: string, evaluate: (overt: Syllable[], parse: ProsodicWord) => number): StressFaith {
-  return { kind: "faith", name, evaluate };
+  return { kind: "faith", name, evaluate }
 }
 export function StressMark(name: string, evaluate: (overt: Syllable[]) => number): StressMark {
-  return { kind: "mark", name, evaluate };
+  return { kind: "mark", name, evaluate }
 }
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
 /**
@@ -77,23 +77,23 @@ export function StressMark(name: string, evaluate: (overt: Syllable[]) => number
  * W = win
  * = = equal, tied
  */
-export type Erc = "l" | "w" | "=";
+export type Erc = "l" | "w" | "="
 /**
  * Column of a tableau, relative to another column
  */
 export type Column = {
-  constraint: Constraint;
-  violations: Erc[];
-};
+  constraint: Constraint
+  violations: Erc[]
+}
 export function Column(constraint: Constraint, violations: Erc[]): Column {
-  return { constraint, violations };
+  return { constraint, violations }
 }
 export type MarkColumn = {
-  constraint: Constraint;
-  violations: number[];
-};
+  constraint: Constraint
+  violations: number[]
+}
 export function MarkColumn(constraint: Constraint, violations: number[]): MarkColumn {
-  return { constraint, violations };
+  return { constraint, violations }
 }
 export let features = [
   "cons",
@@ -115,12 +115,12 @@ export let features = [
   "lateral",
   "place",
   "boundary",
-] as const;
-export type Phoneme = Partial<Record<(typeof features)[number], boolean | "labial" | "coronal" | "dorsal">>;
+] as const
+export type Phoneme = Partial<Record<(typeof features)[number], boolean | "labial" | "coronal" | "dorsal">>
 export type Tree<T> = {
-  value: T;
-  kids: Tree<T>[];
-};
+  value: T
+  kids: Tree<T>[]
+}
 export function Tree<T>(value: T, kids: Tree<T>[] = []): Tree<T> {
-  return { value, kids };
+  return { value, kids }
 }

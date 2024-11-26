@@ -1,7 +1,7 @@
-import { testall } from "./util/testing";
-import { strictEqual as eq, deepEqual as equal } from "node:assert";
-import { phonemes } from "./unifeat";
-import { collapsePairs } from "./util/map";
+import { testall } from "./util/testing"
+import { strictEqual as eq, deepEqual as equal } from "node:assert"
+import { phonemes } from "./unifeat"
+import { collapsePairs } from "./util/map"
 
 function duplicates() {
   // TODO: map keys aren't checked by deep equal in JS, so can't use them to deduplicate
@@ -9,7 +9,7 @@ function duplicates() {
     collapsePairs(
       Object.entries(phonemes).map(([k, v]) => [JSON.stringify(Object.entries(v)), k] as [any, string]),
     ).values(),
-  ).filter(cs => cs.length > 1);
+  ).filter(cs => cs.length > 1)
 }
 testall("Phoneme feature database tests", {
   duplicates() {
@@ -35,6 +35,6 @@ a æ
 ə ɜ`
         .split("\n")
         .map(s => s.split(" ")),
-    );
+    )
   },
-});
+})

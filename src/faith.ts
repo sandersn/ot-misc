@@ -1,39 +1,39 @@
-import { levenshtein, optimal, type Operation } from "./lev";
-import { Faith } from "./types";
-import { count } from "./util/array";
+import { levenshtein, optimal, type Operation } from "./lev"
+import { Faith } from "./types"
+import { count } from "./util/array"
 // TODO: optimal, levenshtein and probably syllabify and unifeat need to be memoised
 export let maxIO = Faith("maxIO", (input, output) =>
   count(optimal(levenshtein(input, output)), ([op, _]) => op === "delete"),
-);
+)
 export let depIO = Faith("depIO", (input, output) =>
   count(optimal(levenshtein(input, output)), ([op, _]) => op === "insert"),
-);
+)
 export let depInitSigma = Faith("depInitSigma", (input, output) =>
   optimal(levenshtein(input, output))[0][0] == "insert" ? 1 : 0,
-);
+)
 /**
  * Generate a list of edits that will work on `output`, based on the edit operations needed to turn `input` into `output`.
  * MAX constraints only turn deletes into inserts, and DEP constraints only turn inserts into deletes.
  */
-function unalignedChars(input: string, output: string, operation: "insert"): Array<number>;
-function unalignedChars(input: string, output: string, operation: "delete"): Array<[number, string]>;
+function unalignedChars(input: string, output: string, operation: "insert"): Array<number>
+function unalignedChars(input: string, output: string, operation: "delete"): Array<[number, string]>
 function unalignedChars(input: string, output: string, operation: Operation): Array<[number, string]> | Array<number> {
-  let edits = [];
-  let offset = 0;
+  let edits = []
+  let offset = 0
   for (let [op, [src, _]] of optimal(levenshtein(input, output))) {
     if (op === "delete") {
       if (operation === "delete") {
-        edits.push([src + offset, input[src]] as const);
+        edits.push([src + offset, input[src]] as const)
       }
-      offset--;
+      offset--
     } else if (op === "insert") {
       if (operation === "insert") {
-        edits.push(src + offset);
+        edits.push(src + offset)
       }
-      offset++;
+      offset++
     }
   }
-  return edits as number[] | [number, string][];
+  return edits as number[] | [number, string][]
 }
 /**
  * Adapted straight from Python; it looks too clever for me, so I probably got it from a book.
@@ -43,56 +43,56 @@ function unalignedChars(input: string, output: string, operation: Operation): Ar
  * If it's 1, then you keep the element at index _j_.
  */
 export function powerset<T>(xs: T[]): T[][] {
-  let acc = [];
+  let acc = []
   for (let i = 0; i < 2 ** xs.length; i++) {
-    acc.push(xs.filter((_, j) => (2 ** j) & i));
+    acc.push(xs.filter((_, j) => (2 ** j) & i))
   }
-  return acc;
+  return acc
 }
 /** Insert a subset of levenshtein inserts that mapped an input string into an output string. */
 function undoDeletes(s: string, edits: Array<[number, string]>): string {
   if (edits.length === 0) {
-    return s;
+    return s
   }
-  let i = 0;
-  let edit = 0;
-  let [n, add] = edits[edit];
-  let out = "";
+  let i = 0
+  let edit = 0
+  let [n, add] = edits[edit]
+  let out = ""
   for (let c of s) {
     while (i === n) {
-      out += add;
-      edit++;
+      out += add
+      edit++
       if (edit === edits.length) {
-        return out + s.slice(i);
+        return out + s.slice(i)
       }
-      [n, add] = edits[edit];
+      ;[n, add] = edits[edit]
     }
-    out += c;
-    i++;
+    out += c
+    i++
   }
-  return out;
+  return out
 }
 function undoInserts(s: string, edits: number[]): string {
-  let i = 0;
-  let edit = 0;
-  let out = "";
+  let i = 0
+  let edit = 0
+  let out = ""
   for (let c of s) {
     if (i === edits[edit]) {
-      edit++;
+      edit++
     } else {
-      out += c;
+      out += c
     }
-    i++;
+    i++
   }
-  return out;
+  return out
 }
 // TODO: I need to re-read some basic OT literature to remember why MAX and DEP only pay attention to delete/insert
 export function maxRepair(input: string, output: string): Array<string> {
-  return powerset(unalignedChars(input, output, "delete")).map(cs => undoDeletes(output, cs));
+  return powerset(unalignedChars(input, output, "delete")).map(cs => undoDeletes(output, cs))
 }
 export function depRepair(input: string, output: string): Array<string> {
-  return powerset(unalignedChars(input, output, "insert")).map(inserts => undoInserts(output, inserts));
+  return powerset(unalignedChars(input, output, "insert")).map(inserts => undoInserts(output, inserts))
 }
 export function depInitRepair(input: string, output: string): Array<string> {
-  return optimal(levenshtein(input, output))[0][0] == "insert" ? [output.slice(1)] : [];
+  return optimal(levenshtein(input, output))[0][0] == "insert" ? [output.slice(1)] : []
 }

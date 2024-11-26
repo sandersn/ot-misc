@@ -1,14 +1,14 @@
-import { Phoneme } from "./types";
+import { Phoneme } from "./types"
 export function phonesToFeatures(phones: string | string[]): Phoneme[] {
   if (typeof phones === "string") {
-    phones = phones.split("");
+    phones = phones.split("")
   }
   return phones.map(c => {
-    if (c in phonemes) return phonemes[c];
+    if (c in phonemes) return phonemes[c]
     else {
-      throw new Error(`No feature data for phone ${c}`);
+      throw new Error(`No feature data for phone ${c}`)
     }
-  });
+  })
 }
 export let phonemes: Record<string, Phoneme> = {
   p: { cons: true, son: false, place: "labial", voice: false, contin: false, approx: false },
@@ -550,4 +550,4 @@ export let phonemes: Record<string, Phoneme> = {
     lateral: true,
   },
   "#": { boundary: true },
-}; //last (but not least), a concession to reality
+} //last (but not least), a concession to reality

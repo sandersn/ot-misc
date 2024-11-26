@@ -1,5 +1,5 @@
-import { qw, testall } from "./util/testing";
-import assert, { strictEqual as eq, deepEqual as equal, fail } from "node:assert";
+import { qw, testall } from "./util/testing"
+import assert, { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
 import {
   absToRelative,
   readJsonViolations,
@@ -11,14 +11,14 @@ import {
   noDh,
   noVoiceobs,
   nopvmvpv,
-} from "./hydrogen";
-import { rcd } from "./rcd";
-import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress, isFoot, StressConstraint, StressMark } from "./types";
-import fs from "node:fs";
-import * as ot from "./ot";
-import * as faith from "./faith";
-import * as mark from "./mark";
-import { phonesToFeatures } from "./unifeat";
+} from "./hydrogen"
+import { rcd } from "./rcd"
+import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress, isFoot, StressConstraint, StressMark } from "./types"
+import fs from "node:fs"
+import * as ot from "./ot"
+import * as faith from "./faith"
+import * as mark from "./mark"
+import { phonesToFeatures } from "./unifeat"
 testall("General OT tests", {
   absToRelative() {
     // abs is without titles right now
@@ -26,42 +26,42 @@ testall("General OT tests", {
       ["foo", "foo", "", "1", "", "2"],
       ["", "oof", "1", "", "", "1"],
       ["", "oaf", "", "2", "", ""],
-    ];
+    ]
     // This is the "backward language" so foo -> oof
     let rel = [
       [1, 0, 1],
       [2, 0, -1],
-    ];
-    equal(rel, absToRelative(abs));
+    ]
+    equal(rel, absToRelative(abs))
   },
   readJson() {
-    const j = JSON.parse(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"));
-    eq(j.length, 8);
+    const j = JSON.parse(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))
+    eq(j.length, 8)
     for (let row of j) {
-      eq(row.length, 105);
+      eq(row.length, 105)
     }
   },
   rcdBasic() {
     equal(rcd(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))), [
       [idasp, idvoice, idasp_v, idvoice_v, noDh],
       [nopvmvpv, noVoiceobs, noAsp],
-    ]);
+    ])
   },
   eval() {
     eq(
       ot.evaluate(
         Mark("mark-length", s => s.length),
-        ["hi"]
+        ["hi"],
       ),
-      2
-    );
+      2,
+    )
     eq(
       ot.evaluate(
         Faith("faith-length", (x, y) => (x + y).length),
-        ["hi", "there"]
+        ["hi", "there"],
       ),
-      7
-    );
+      7,
+    )
   },
   bounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),
   bounds2: () => eq(ot.simplyBounds([0, 0, 1, 2], [0, 0, 1, 1]), true),
@@ -147,7 +147,7 @@ testall("General OT tests", {
           son: true,
         },
       ],
-    ]);
+    ])
   },
   maxRepair1: () => equal(faith.maxRepair("tinkomati", "inkomai"), qw("inkomai tinkomai inkomati tinkomati")),
   maxRepair2: () => equal(faith.maxRepair("inkomai", "komai"), qw("komai ikomai nkomai inkomai")),
@@ -160,17 +160,17 @@ testall("General OT tests", {
   depRepair4: () => equal(faith.depRepair("inkomai", "komai"), qw("komai")),
   depRepair5: () => equal(faith.depRepair("", "foo"), [...qw("foo oo fo o fo o f"), ""]),
   onset() {
-    equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
+    equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"))
   },
   parseStressEmpty() {
-    equal(mark.parseStress([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
+    equal(mark.parseStress([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] })
   },
   parseEvalOneHeavy: markEval(mark.parse, "_", 1),
   parseEvalOneLight: markEval(mark.parse, ".", 1),
   parseEvalFive: markEval(mark.parse, "..'...", 3),
   parseEvalSix: markEval(mark.parse, "..'....", 4),
   footBinEvalEmpty() {
-    equal(mark.footBin.evaluate([]), 0);
+    equal(mark.footBin.evaluate([]), 0)
   },
   footBinEvalOneHeavy: markEval(mark.footBin, "_", 0),
   footBinEvalOneLight: markEval(mark.footBin, ".", 0),
@@ -195,10 +195,10 @@ testall("General OT tests", {
   aflEvalFourTwoStress: markEval(mark.allFeetLeft, "'..'..", 2),
   aflEvalFiveTwoStressInitial: markEval(mark.allFeetLeft, "'...'..", 2),
   aflEvalFiveTwoStress: markEval(mark.allFeetLeft, ".'..'..", 2),
-});
-let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
+})
+let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
 function markEval(constraint: StressMark, overt: string, count: number): () => void {
-  return () => equal(constraint.evaluate(stressOvert(overt)), count);
+  return () => equal(constraint.evaluate(stressOvert(overt)), count)
 }
 markParseStressAll([
   [".", "."],
@@ -222,26 +222,26 @@ markParseStressAll([
   ["'....'.", "('..).(.'.)"],
   ["'......", "('..)...."],
   [".....'.", "....(.'.)"],
-]);
+])
 function markParseStressAll(pairs: [string, string][]): void {
   describe("mark.parseStress", () => {
     for (let [overt, word] of pairs) {
-      test(`${overt} => ${word}`, markParseStress(overt, word));
+      test(`${overt} => ${word}`, markParseStress(overt, word))
     }
-  });
+  })
 }
 function markParseStress(overt: string, word: string): () => void {
-  const actual = mark.parseStress(stressOvert(overt));
-  return () => equal(actual, prosodicWord(word, defaultHead), `expected: ${word} -- received: ${formatStress(actual)}`);
+  const actual = mark.parseStress(stressOvert(overt))
+  return () => equal(actual, prosodicWord(word, defaultHead), `expected: ${word} -- received: ${formatStress(actual)}`)
 }
 function stressOvert(stress: string): Syllable[] {
-  assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns");
-  return stressPattern(stress) as Syllable[];
+  assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns")
+  return stressPattern(stress) as Syllable[]
 }
 function prosodicWord(stress: string, head?: Foot): ProsodicWord {
-  let feet = stressPattern(stress);
-  head = feet.find(isFoot) ?? head ?? fail("no feet in prosodic word");
-  return { head, feet };
+  let feet = stressPattern(stress)
+  head = feet.find(isFoot) ?? head ?? fail("no feet in prosodic word")
+  return { head, feet }
 }
 /** ('..)
  * . light
@@ -252,47 +252,47 @@ function prosodicWord(stress: string, head?: Foot): ProsodicWord {
  * ) end of foot
  */
 function stressPattern(stress: string): (Syllable | Foot)[] {
-  let nextStress: Stress = "unstressed";
-  let foot: Syllable[] | undefined;
-  let syllables: (Syllable | Foot)[] = [];
+  let nextStress: Stress = "unstressed"
+  let foot: Syllable[] | undefined
+  let syllables: (Syllable | Foot)[] = []
   for (let i = 0; i < stress.length; i++) {
     switch (stress[i]) {
       case "'":
-        nextStress = "primary";
-        break;
+        nextStress = "primary"
+        break
       case "`":
-        nextStress = "secondary";
-        break;
+        nextStress = "secondary"
+        break
       case ".":
       case "_":
-        (foot ? foot : syllables).push({ stress: nextStress, weight: stress[i] === "." ? "l" : "h" });
-        nextStress = "unstressed";
-        break;
+        ;(foot ? foot : syllables).push({ stress: nextStress, weight: stress[i] === "." ? "l" : "h" })
+        nextStress = "unstressed"
+        break
       case "(":
-        assert(!foot, "open parenthesis inside unclosed open parenthesis");
-        foot = [];
-        break;
+        assert(!foot, "open parenthesis inside unclosed open parenthesis")
+        foot = []
+        break
       case ")":
-        assert(foot, "close parenthesis without open parenthesis");
+        assert(foot, "close parenthesis without open parenthesis")
         if (foot.length === 1) {
-          syllables.push({ s1: foot[0] });
+          syllables.push({ s1: foot[0] })
         } else if (foot.length === 2) {
-          syllables.push({ s1: foot[0], s2: foot[1] });
+          syllables.push({ s1: foot[0], s2: foot[1] })
         } else {
-          fail("foot too long" + foot.length);
+          fail("foot too long" + foot.length)
         }
-        foot = undefined;
-        break;
+        foot = undefined
+        break
     }
   }
-  return syllables;
+  return syllables
 }
 
 function formatStress(pw: ProsodicWord): string {
   return pw.feet
     .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
-    .join("");
+    .join("")
 }
 function formatSyllable(s: Syllable): string {
-  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_");
+  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
 }

@@ -1,11 +1,11 @@
-import { qw, testall } from "./util/testing";
-import { strictEqual as eq, deepEqual as equal, fail } from "node:assert";
-import { phonemes, phonesToFeatures } from "./unifeat";
-import * as lev from "./lev";
+import { qw, testall } from "./util/testing"
+import { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
+import { phonemes, phonesToFeatures } from "./unifeat"
+import * as lev from "./lev"
 function* pairs(ss: string[]) {
   for (let s1 of ss) {
     for (let s2 of ss) {
-      yield [s1, s2] as const;
+      yield [s1, s2] as const
     }
   }
 }
@@ -18,7 +18,7 @@ testall("Feature distance", {
       [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0],
       [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 11.0],
       [4.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0],
-    ]);
+    ])
   },
   charLevenshtein() {
     equal(lev.levenshtein("ab_de=", "ab@d"), [
@@ -30,7 +30,7 @@ testall("Feature distance", {
       [5, 4, 3, 4, 3], // e
       [6, 5, 4, 5, 4], // =
       //  a  b  @  d
-    ]);
+    ])
   },
   levenshteinOptimalPath() {
     equal(
@@ -48,15 +48,15 @@ testall("Feature distance", {
         ["insert", [2, 4]],
         ["insert", [2, 5]],
       ],
-    );
+    )
   },
   "optimal path is reflexive"() {
     for (let [s1, s2] of pairs(qw("i am the eggman you are a walrus googookachoo"))) {
-      let onetwo = lev.optimal(lev.levenshtein(s1, s2));
+      let onetwo = lev.optimal(lev.levenshtein(s1, s2))
       let twoone = lev
         .optimal(lev.levenshtein(s2, s1))
-        .map(([op, [i, j]]) => [op === "insert" ? "delete" : op === "delete" ? "insert" : op, [j, i]] as const);
-      equal(onetwo, twoone);
+        .map(([op, [i, j]]) => [op === "insert" ? "delete" : op === "delete" ? "insert" : op, [j, i]] as const)
+      equal(onetwo, twoone)
     }
   },
   levenshteinRealistic() {
@@ -64,7 +64,7 @@ testall("Feature distance", {
       [0.0, 3.286924, 6.573848, 9.860772, 13.147696, 16.43462, 19.721544],
       [3.286924, 6.573848, 9.860772, 7.573848, 10.860772, 14.147696, 17.43462],
       [6.573848, 3.286924, 6.573848, 9.860772, 13.147696, 10.860772, 14.147696],
-    ]);
+    ])
     equal(
       lev.optimal([
         [0.0, 3.286924, 6.5738479999999999, 9.8607720000000008, 13.147696, 16.434619999999999, 19.721544000000002],
@@ -85,6 +85,6 @@ testall("Feature distance", {
         ["substitute", [1, 4]],
         ["insert", [2, 5]],
       ],
-    );
+    )
   },
-});
+})
