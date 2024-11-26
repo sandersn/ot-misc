@@ -22,14 +22,14 @@ export function onsetRepair(output: string): string[] {
   let epenthesise = (syllable: string) => "t" + syllable
   let syllables = syllabify(unifeat.phonesToFeatures(output))
   let opss: ((s: string) => string)[][] = sequence(
-    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise])),
+    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise]))
   )
   // TODO: Hacky that the inner algorithm is in syllables but the outer is in strings. It was just easier to test, I bet.
   let syllables2 = recreateSyllables(syllables)
   return opss.map(ops =>
     zipWith(ops, syllables2, (op, syll) => op(syll))
       .flat()
-      .join(""),
+      .join("")
   )
 }
 /**
@@ -136,31 +136,22 @@ export function parseStress(overt: Syllable[]): ProsodicWord {
   let feet: (Foot | Syllable)[] = []
   let prev: Syllable | undefined
   for (const s of overt) {
-    if (s.weight === "l") {
+    if (!prev) {
+      // x -> prev = x
+      prev = s
+    } else if (s.stress === "unstressed" && prev.stress === "unstressed") {
+      // xy -> push x, prev = y
+      feet.push(prev)
+      prev = s
+    } else if (s.weight === "l") {
       if (s.stress === "unstressed") {
-        // l -> prev = l
-        // ll -> push l, prev = l
-        // hl -> push h, prev = l
-        // 'll -> push ('ll), prev = undefined
-        // 'hl -> push ('hl), prev = undefined
-        if (!prev) {
-          prev = s
-        } else if (prev.stress === "unstressed") {
-          feet.push(prev)
-          prev = s
-        } else {
-          feet.push({ s1: prev, s2: s })
-          prev = undefined
-        }
+        // 'xl -> push ('xl), prev = undefined
+        feet.push({ s1: prev, s2: s })
+        prev = undefined
       } else {
-        // 'l -> prev = 'l
-        // l'l -> push (l'l), prev = undefined
-        // h'l -> push (h'l), prev = undefined ??
-        // 'l'l -> push ('l), prev = 'l
-        // 'h'l -> push ('h), prev = 'l
-        if (!prev) {
-          prev = s
-        } else if (prev.stress === "unstressed") {
+        // x'l -> push (x'l), prev = undefined -- but (h'l)??
+        // 'x'l -> push ('x), prev = 'l
+        if (prev.stress === "unstressed") {
           feet.push({ s1: prev, s2: s })
           prev = undefined
         } else {
@@ -170,34 +161,20 @@ export function parseStress(overt: Syllable[]): ProsodicWord {
       }
     } else if (s.weight === "h") {
       if (s.stress === "unstressed") {
-        // h -> prev = h
-        // lh -> push l, prev = h
-        // hh -> push h, prev = h
         // 'lh -> push ('lh), prev = undefined ??
-        // 'hh -> push ('h), prev = h (but prev =/= 'h)
-        if (!prev) {
-          prev = s
-        } else if (prev.stress === "unstressed") {
-          feet.push(prev)
-          prev = s
+        // 'hh -> push ('h), prev = h
+        if (prev.weight === "l") {
+          feet.push({ s1: prev, s2: s })
+          prev = undefined
         } else {
-          if (prev.weight === "l") {
-            feet.push({ s1: prev, s2: s })
-            prev = undefined
-          } else {
-            feet.push({ s1: prev })
-            prev = s
-          }
+          feet.push({ s1: prev })
+          prev = s
         }
       } else {
-        // 'h -> prev = 'h
         // l'h -> push (l'h), prev = undefined
         // h'h -> push h, prev = 'h
-        // 'l'h -> push ('l), prev = 'h
-        // 'h'h -> push ('h), prev = 'h
-        if (!prev) {
-          prev = s
-        } else if (prev.stress === "unstressed") {
+        // 'x'h -> push ('x), prev = 'h
+        if (prev.stress === "unstressed") {
           if (prev.weight === "l") {
             feet.push({ s1: prev, s2: s })
             prev = undefined
