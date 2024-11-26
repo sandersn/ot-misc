@@ -1,4 +1,5 @@
-import { qw, testall } from "./util/testing"
+import { suite, test } from 'node:test'
+import { qw, testall } from "./util/testing.ts"
 import assert, { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
 import {
   absToRelative,
@@ -11,14 +12,15 @@ import {
   noDh,
   noVoiceobs,
   nopvmvpv,
-} from "./hydrogen"
-import { rcd } from "./rcd"
-import { Mark, Faith, Tree, Syllable, Foot, ProsodicWord, Stress, isFoot, StressConstraint, StressMark } from "./types"
+} from "./hydrogen.ts"
+import { rcd } from "./rcd.ts"
+import {  Mark, Faith,isFoot } from "./types.ts"
+import type { Syllable, Foot, ProsodicWord, Stress, StressMark } from "./types.ts"
 import fs from "node:fs"
-import * as ot from "./ot"
-import * as faith from "./faith"
-import * as mark from "./mark"
-import { phonesToFeatures } from "./unifeat"
+import * as ot from "./ot.ts"
+import * as faith from "./faith.ts"
+import * as mark from "./mark.ts"
+import { phonesToFeatures } from "./unifeat.ts"
 testall("General OT tests", {
   absToRelative() {
     // abs is without titles right now
@@ -195,11 +197,17 @@ testall("General OT tests", {
   aflEvalFourTwoStress: markEval(mark.allFeetLeft, "'..'..", 2),
   aflEvalFiveTwoStressInitial: markEval(mark.allFeetLeft, "'...'..", 2),
   aflEvalFiveTwoStress: markEval(mark.allFeetLeft, ".'..'..", 2),
+  afrEvalEmpty: markEval(mark.allFeetRight, "", 0),
+  afrEvalOneUnstressed: markEval(mark.allFeetRight, ".", 0),
+  afrEvalOneLight: markEval(mark.allFeetRight, "'.", 0),
+  afrEvalOneHeavy: markEval(mark.allFeetRight, "'_", 0),
+  afrEvalTwo: markEval(mark.allFeetRight, "'..", 0),
+  afrEvalFourOneStress: markEval(mark.allFeetRight, "..'..", 0),
+  afrEvalFourTwoStress: markEval(mark.allFeetRight, "'..'..", 2),
+  afrEvalFiveTwoStressInitial: markEval(mark.allFeetRight, "'...'..", 3),
+  afrEvalFiveTwoStress: markEval(mark.allFeetRight, ".'..'..", 4),
 })
 let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
-function markEval(constraint: StressMark, overt: string, count: number): () => void {
-  return () => equal(constraint.evaluate(stressOvert(overt)), count)
-}
 markParseStressAll([
   [".", "."],
   ["'.", "('.)"],
@@ -228,7 +236,7 @@ markParseStressAll([
   [".....'.", "....(.'.)"],
 ])
 function markParseStressAll(pairs: [string, string][]): void {
-  describe("mark.parseStress", () => {
+  suite("mark.parseStress", () => {
     for (let [overt, word] of pairs) {
       test(`${overt} => ${word}`, markParseStress(overt, word))
     }
@@ -238,14 +246,27 @@ function markParseStress(overt: string, word: string): () => void {
   const actual = mark.parseStress(stressOvert(overt))
   return () => equal(actual, prosodicWord(word, defaultHead), `expected: ${word} -- received: ${formatStress(actual)}`)
 }
-function stressOvert(stress: string): Syllable[] {
-  assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns")
-  return stressPattern(stress) as Syllable[]
-}
 function prosodicWord(stress: string, head?: Foot): ProsodicWord {
   let feet = stressPattern(stress)
   head = feet.find(isFoot) ?? head ?? fail("no feet in prosodic word")
   return { head, feet }
+}
+function formatStress(pw: ProsodicWord): string {
+  return pw.feet
+    .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
+    .join("")
+}
+function formatSyllable(s: Syllable): string {
+  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
+}
+
+function markEval(constraint: StressMark, overt: string, count: number): () => void {
+  return () => equal(constraint.evaluate(stressOvert(overt)), count)
+}
+
+function stressOvert(stress: string): Syllable[] {
+  assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns")
+  return stressPattern(stress) as Syllable[]
 }
 /** ('..)
  * . light
@@ -290,13 +311,4 @@ function stressPattern(stress: string): (Syllable | Foot)[] {
     }
   }
   return syllables
-}
-
-function formatStress(pw: ProsodicWord): string {
-  return pw.feet
-    .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
-    .join("")
-}
-function formatSyllable(s: Syllable): string {
-  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
 }

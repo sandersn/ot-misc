@@ -1,7 +1,7 @@
-import { qw, testall } from "./util/testing"
+import { qw, testall } from "./util/testing.ts"
 import { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
-import { phonemes, phonesToFeatures } from "./unifeat"
-import * as lev from "./lev"
+import { phonemes, phonesToFeatures } from "./unifeat.ts"
+import * as lev from "./lev.ts"
 function* pairs(ss: string[]) {
   for (let s1 of ss) {
     for (let s2 of ss) {

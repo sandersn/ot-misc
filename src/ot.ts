@@ -1,6 +1,6 @@
-import assert from "assert"
-import { Constraint, Erc, Tree } from "./types"
-import { transpose, zip } from "./util/array"
+import assert from "node:assert"
+import type { Constraint, Erc, Tree } from "./types.ts"
+import { transpose, zip } from "./util/array.ts"
 /**
  * When evaluating a markedness constraint, you can pass either
  * (input, output) or just (output) as args.

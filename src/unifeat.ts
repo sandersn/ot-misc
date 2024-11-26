@@ -1,4 +1,4 @@
-import { Phoneme } from "./types"
+import type { Phoneme } from "./types.ts"
 export function phonesToFeatures(phones: string | string[]): Phoneme[] {
   if (typeof phones === "string") {
     phones = phones.split("")

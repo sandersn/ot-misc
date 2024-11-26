@@ -1,7 +1,7 @@
-import { testall } from "./util/testing"
+import { testall } from "./util/testing.ts"
 import { strictEqual as eq, deepEqual as equal } from "node:assert"
-import { phonemes } from "./unifeat"
-import { collapsePairs } from "./util/map"
+import { phonemes } from "./unifeat.ts"
+import { collapsePairs } from "./util/map.ts"
 
 function duplicates() {
   // TODO: map keys aren't checked by deep equal in JS, so can't use them to deduplicate

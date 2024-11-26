@@ -1,4 +1,4 @@
-import { Phoneme } from "./types"
+import type { Phoneme } from "./types.ts"
 
 export type Table = number[][]
 export type Operation = "insert" | "delete" | "substitute"

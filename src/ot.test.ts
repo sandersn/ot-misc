@@ -1,10 +1,10 @@
-import { testall } from "./util/testing"
+import { testall } from "./util/testing.ts"
 import { strictEqual as eq, deepEqual as equal } from "node:assert"
-import * as ot from "./ot"
-import * as faith from "./faith"
-import * as mark from "./mark"
-import { zip } from "./util/array"
-import { Tree } from "./types"
+import * as ot from "./ot.ts"
+import * as faith from "./faith.ts"
+import * as mark from "./mark.ts"
+import { zip } from "./util/array.ts"
+import { Tree } from "./types.ts"
 testall("Advanced OT tests", {
   genRepair() {
     equal(

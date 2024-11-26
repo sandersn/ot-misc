@@ -1,5 +1,5 @@
-import { Column, Faith, Erc } from "./types"
-import { partition, zipWith } from "./util/array"
+import { Column, Faith, type Erc } from "./types.ts"
+import { partition, zipWith } from "./util/array.ts"
 
 export let idasp = Faith("Ident (asp)", () => 0)
 export let idvoice = Faith("Ident (voice)", () => 0)

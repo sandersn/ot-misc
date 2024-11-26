@@ -1,6 +1,6 @@
-import { levenshtein, optimal, type Operation } from "./lev"
-import { Faith } from "./types"
-import { count } from "./util/array"
+import { levenshtein, optimal, type Operation } from "./lev.ts"
+import { Faith } from "./types.ts"
+import { count } from "./util/array.ts"
 // TODO: optimal, levenshtein and probably syllabify and unifeat need to be memoised
 export let maxIO = Faith("maxIO", (input, output) =>
   count(optimal(levenshtein(input, output)), ([op, _]) => op === "delete"),

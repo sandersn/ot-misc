@@ -1,5 +1,5 @@
-import { partition, transpose, zip, pickIndices } from "./util/array"
-import { Column, Strata } from "./types"
+import { partition, pickIndices } from "./util/array.ts"
+import { Column, type Strata } from "./types.ts"
 /**
  * A candidate is a loser when its promoted columns have a winning mark in them.
  * If the promoted columns are all tied, then the candidate is not a loser, and
