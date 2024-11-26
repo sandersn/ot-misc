@@ -51,16 +51,16 @@ testall("General OT tests", {
     eq(
       ot.evaluate(
         Mark("mark-length", s => s.length),
-        ["hi"],
+        ["hi"]
       ),
-      2,
+      2
     );
     eq(
       ot.evaluate(
         Faith("faith-length", (x, y) => (x + y).length),
-        ["hi", "there"],
+        ["hi", "there"]
       ),
-      7,
+      7
     );
   },
   bounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),
@@ -162,59 +162,85 @@ testall("General OT tests", {
   onset() {
     equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"));
   },
-  markParseStressEvaluateEmpty() {
-    // let head: Foot = { s1: { stress: "primary", weight: 'l' }, s2: { stress: "unstressed", weight: 'l' } };
-    equal(mark.footBin.evaluate([]), 0);
-  },
-  markParseStressEmpty() {
+  parseStressEmpty() {
     equal(mark.parseStress([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] });
   },
-  markParseStressParseOneLight() {
-    equal(mark.parseStress(stressOvert("'.")), {
-      head: { s1: { stress: undefined, weight: "l" }, s2: undefined },
-      feet: [{ stress: "primary", weight: "l" }],
-    });
+  parseEvalOneHeavy: markEval(mark.parse, "_", 1),
+  parseEvalOneLight: markEval(mark.parse, ".", 1),
+  parseEvalFive: markEval(mark.parse, "..'...", 3),
+  parseEvalSix: markEval(mark.parse, "..'....", 4),
+  footBinEvalEmpty() {
+    equal(mark.footBin.evaluate([]), 0);
   },
-  footBinParseOneHeavy: markParseStress("'_", "('_)"),
-  footBinParseTwo: markParseStress("'..", "('..)"),
-  footBinParseThree: markParseStress("'...", "('..)."),
-  footBinParseFour: markParseStress("'....", "('..).."),
-  footBinParseFive: markParseStress("'.....", "('..)..."),
-  footBinParseSix: markParseStress("'......", "('..)...."),
-  footBinParseSixStressFinal: markParseStress(".....'.", "....(.'.)"),
-  parseEvaluateOneHeavy: markEval(mark.parse, "_", 0),
-  parseEvaluateOneLight: markEval(mark.parse, ".", 1),
-  parseEvaluateFive: markEval(mark.parse, "..'...", 3),
-  parseEvaluateSix: markEval(mark.parse, "..'....", 4),
-  footBinEvaluateOneHeavy: markEval(mark.footBin, "_", 0),
-  footBinEvaluateOneLight: markEval(mark.footBin, ".", 0),
-  footBinEvaluateFive: markEval(mark.footBin, "..'...", 0),
-  footBinEvaluateSix: markEval(mark.footBin, "..'....", 0),
-  markWspEvaluateEmpty: markEval(mark.wsp, "", 0),
-  markWspEvaluateHeavyPrimary: markEval(mark.wsp, "'_", 0),
-  markWspEvaluateHeavySecondary: markEval(mark.wsp, "`_", 0),
-  markWspEvaluateHeavyUnstressed: markEval(mark.wsp, "_", 1),
-  markWspEvaluateLightUnstressed: markEval(mark.wsp, ".", 0),
-  markWspEvaluateLightPrimary: markEval(mark.wsp, "'.", 0),
-  markWspEvaluateHeavyLight: markEval(mark.wsp, ".'_.", 0),
-  markWspEvaluateHeavyLightUnstressed: markEval(mark.wsp, "._.", 1),
-  markWspEvaluateMultipleHeavyUnstressed: markEval(mark.wsp, "__._.", 3),
-  markWspEvaluateMultipleHeavyMixed: markEval(mark.wsp, "__.`_.", 2),
+  footBinEvalOneHeavy: markEval(mark.footBin, "_", 0),
+  footBinEvalOneLight: markEval(mark.footBin, ".", 0),
+  footBinEvalFive: markEval(mark.footBin, "..'...", 0),
+  footBinEvalSix: markEval(mark.footBin, "..'....", 0),
+  wspEvalEmpty: markEval(mark.wsp, "", 0),
+  wspEvalHeavyPrimary: markEval(mark.wsp, "'_", 0),
+  wspEvalHeavySecondary: markEval(mark.wsp, "`_", 0),
+  wspEvalHeavyUnstressed: markEval(mark.wsp, "_", 1),
+  wspEvalLightUnstressed: markEval(mark.wsp, ".", 0),
+  wspEvalLightPrimary: markEval(mark.wsp, "'.", 0),
+  wspEvalHeavyLight: markEval(mark.wsp, ".'_.", 0),
+  wspEvalHeavyLightUnstressed: markEval(mark.wsp, "._.", 1),
+  wspEvalMultipleHeavyUnstressed: markEval(mark.wsp, "__._.", 3),
+  wspEvalMultipleHeavyMixed: markEval(mark.wsp, "__.`_.", 2),
+  aflEvalEmpty: markEval(mark.allFeetLeft, "", 0),
+  aflEvalOneUnstressed: markEval(mark.allFeetLeft, ".", 0),
+  aflEvalOneLight: markEval(mark.allFeetLeft, "'.", 0),
+  aflEvalOneHeavy: markEval(mark.allFeetLeft, "'_", 0),
+  aflEvalTwo: markEval(mark.allFeetLeft, "'..", 0),
+  aflEvalFourOneStress: markEval(mark.allFeetLeft, "..'..", 1),
+  aflEvalFourTwoStress: markEval(mark.allFeetLeft, "'..'..", 2),
+  aflEvalFiveTwoStressInitial: markEval(mark.allFeetLeft, "'...'..", 2),
+  aflEvalFiveTwoStress: markEval(mark.allFeetLeft, ".'..'..", 2),
 });
+let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
 function markEval(constraint: StressMark, overt: string, count: number): () => void {
   return () => equal(constraint.evaluate(stressOvert(overt)), count);
 }
+markParseStressAll([
+  [".", "."],
+  ["'.", "('.)"],
+  ["'_", "('_)"],
+  ["_", "_"],
+  ["'..", "('..)"],
+  [".'.", "(.'.)"],
+  ["'_.", "('_.)"], // TODO: Fails because of greedy parsing of 'h; => ('_).
+  [".'_", "(.'_)"],
+  ["'._", "('._)"],
+  // TODO: Way more tests needed about here
+  ["'...", "('..)."],
+  [".'..", "(.'.)."],
+  ["..'.", ".(.'.)"],
+  ["'....", "('..).."],
+  ["'.....", "('..)..."],
+  ["..'..", ".(.'.)."],
+  [".'..'..", "(.'.)(.'.)."],
+  ["'...'..", "('..)(.'.)."],
+  ["'....'.", "('..).(.'.)"],
+  ["'......", "('..)...."],
+  [".....'.", "....(.'.)"],
+]);
+function markParseStressAll(pairs: [string, string][]): void {
+  describe("mark.parseStress", () => {
+    for (let [overt, word] of pairs) {
+      test(`${overt} => ${word}`, markParseStress(overt, word));
+    }
+  });
+}
 function markParseStress(overt: string, word: string): () => void {
-  return () => equal(mark.parseStress(stressOvert(overt)), prosodicWord(word));
+  const actual = mark.parseStress(stressOvert(overt));
+  return () => equal(actual, prosodicWord(word, defaultHead), `expected: ${word} -- received: ${formatStress(actual)}`);
 }
 function stressOvert(stress: string): Syllable[] {
   assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on overt stress patterns");
   return stressPattern(stress) as Syllable[];
 }
-function prosodicWord(stress: string): ProsodicWord {
+function prosodicWord(stress: string, head?: Foot): ProsodicWord {
   let feet = stressPattern(stress);
-  // TODO: This will need to allow manual specification of the head's index eventually
-  let head = feet.find(isFoot) || fail("no feet in prosodic word");
+  head = feet.find(isFoot) ?? head ?? fail("no feet in prosodic word");
   return { head, feet };
 }
 /** ('..)
@@ -260,4 +286,13 @@ function stressPattern(stress: string): (Syllable | Foot)[] {
     }
   }
   return syllables;
+}
+
+function formatStress(pw: ProsodicWord): string {
+  return pw.feet
+    .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
+    .join("");
+}
+function formatSyllable(s: Syllable): string {
+  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_");
 }

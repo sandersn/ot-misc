@@ -1,6 +1,7 @@
 import * as unifeat from "./unifeat";
 import { Phoneme, Mark, StressMark, Syllable, Foot, isSyllable, isFoot, ProsodicWord } from "./types";
 import { zipWith, count, sequence } from "./util/array";
+import { assert } from "node:console";
 
 unifeat.phonemes;
 export let onset = Mark("onset", (output: string) => {
@@ -21,14 +22,14 @@ export function onsetRepair(output: string): string[] {
   let epenthesise = (syllable: string) => "t" + syllable;
   let syllables = syllabify(unifeat.phonesToFeatures(output));
   let opss: ((s: string) => string)[][] = sequence(
-    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise])),
+    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise]))
   );
   // TODO: Hacky that the inner algorithm is in syllables but the outer is in strings. It was just easier to test, I bet.
   let syllables2 = recreateSyllables(syllables);
   return opss.map(ops =>
     zipWith(ops, syllables2, (op, syll) => op(syll))
       .flat()
-      .join(""),
+      .join("")
   );
 }
 /**
@@ -120,32 +121,102 @@ export function syllabify(phs: Phoneme[]): Phoneme[][] {
   }
 }
 /**
- * NOTE: Empty strings return an illegal head (no stress at all).
- * NOTE: This parser doesn't generate stress or heads, since they're not needed for evaluation.
- *   After implementing a couple more constraints I'll know whether a shared parser is sensible.
+ * NOTE: Empty strings return a sentinel head (no stress at all).
  * TODO: I'm not certain that "unfooted" is the same as "degenerate foot", so maybe I should be generating degenerate feet instead.
+ * NOTE: I'm pretty sure stress parsing is actually ambiguous, or at least requires lookahead, or *at least* requires a normal parser.
+ * But it's *usually* a trochaic word, or at least a foot at the beginning of the word, which this parser should handle.
+ * The bad input is .'.., which could parse as (.'.). or .('..). This parser always produces the former.
  */
 export function parseStress(overt: Syllable[]): ProsodicWord {
-  let head: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
+  let sentinelHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined };
+  if (overt.length === 0) {
+    return { head: sentinelHead, feet: [] };
+  }
+  let foot = { s1: undefined, s2: undefined };
   let feet: (Foot | Syllable)[] = [];
-  for (let i = 0; i < overt.length; i += 2) {
-    if (i + 1 >= overt.length) {
-      if (overt[i].weight === "h") {
-        feet.push({ s1: overt[i] });
+  let prev: Syllable | undefined;
+  for (const s of overt) {
+    if (s.weight === "l") {
+      if (s.stress === "unstressed") {
+        // l -> prev = l
+        // ll -> push l, prev = l
+        // hl -> push h, prev = l
+        // 'll -> push ('ll), prev = undefined
+        // 'hl -> push ('hl), prev = undefined
+        if (!prev) {
+          prev = s;
+        } else if (prev.stress === "unstressed") {
+          feet.push(prev);
+          prev = s;
+        } else {
+          feet.push({ s1: prev, s2: s });
+          prev = undefined;
+        }
       } else {
-        feet.push(overt[i]);
+        // 'l -> prev = 'l
+        // l'l -> push (l'l), prev = undefined
+        // h'l -> push (h'l), prev = undefined ??
+        // 'l'l -> push ('l), prev = 'l
+        // 'h'l -> push ('h), prev = 'l
+        if (!prev) {
+          prev = s;
+        } else if (prev.stress === "unstressed") {
+          feet.push({ s1: prev, s2: s });
+          prev = undefined;
+        } else {
+          feet.push({ s1: prev });
+          prev = s;
+        }
       }
-    } else {
-      if (overt[i].stress === "unstressed" && overt[i + 1].stress === "unstressed") {
-        feet.push(overt[i]);
-        feet.push(overt[i + 1]);
+    } else if (s.weight === "h") {
+      if (s.stress === "unstressed") {
+        // h -> prev = h
+        // lh -> push l, prev = h
+        // hh -> push h, prev = h
+        // 'lh -> push ('lh), prev = undefined ??
+        // 'hh -> push ('h), prev = h (but prev =/= 'h)
+        if (!prev) {
+          prev = s;
+        } else if (prev.stress === "unstressed") {
+          feet.push(prev);
+          prev = s;
+        } else {
+          if (prev.weight === "l") {
+          feet.push({ s1: prev, s2: s });
+          prev = undefined;
+          } else {
+            feet.push({ s1: prev })
+            prev = s
+          }
+        }
       } else {
-      feet.push({ s1: overt[i], s2: overt[i + 1] });
+        // 'h -> prev = 'h
+        // l'h -> push (l'h), prev = undefined
+        // h'h -> push h, prev = 'h
+        // 'l'h -> push ('l), prev = 'h
+        // 'h'h -> push ('h), prev = 'h
+        if (!prev) {
+          prev = s
+        } else if (prev.stress === "unstressed") {
+          if (prev.weight === "l") {
+            feet.push({ s1: prev, s2: s });
+            prev = undefined;
+          } else {
+            feet.push(prev)
+            prev = s
+          }
+        } else {
+          feet.push({ s1: prev });
+          prev = s;
+        }
       }
+      foot.s1;
     }
   }
-  head = feet?.find(isFoot) ?? head
-  return { head, feet };
+  if (prev) {
+    feet.push(prev.stress === "unstressed" ? prev : { s1: prev });
+  }
+  return { head: feet?.find(isFoot) ?? sentinelHead, feet };
 }
 export let footBin: StressMark = {
   kind: "mark",
@@ -166,5 +237,39 @@ export let parse: StressMark = {
   name: "Parse",
   evaluate(overt) {
     return count(parseStress(overt).feet, isSyllable);
+  },
+};
+export let allFeetLeft: StressMark = {
+  kind: "mark",
+  name: "AllFeetLeft",
+  evaluate(overt) {
+    let i = 0;
+    let leftEdgeCount = 0;
+    for (let sf of parseStress(overt).feet) {
+      if (isFoot(sf)) {
+        leftEdgeCount += i;
+        i += sf.s2 ? 2 : 1;
+      } else {
+        i++;
+      }
+    }
+    return leftEdgeCount;
+  },
+};
+export let allFeetRight: StressMark = {
+  kind: "mark",
+  name: "AllFeetRight",
+  evaluate(overt) {
+    let i = 0;
+    let rightEdgeCount = 0;
+    for (let sf of parseStress(overt).feet) {
+      if (isFoot(sf)) {
+        i += sf.s2 ? 2 : 1;
+        rightEdgeCount += overt.length - i;
+      } else {
+        i++;
+      }
+    }
+    return count(parseStress(overt).feet, sf => isFoot(sf) && sf.s1.weight === "h");
   },
 };
