@@ -158,7 +158,7 @@ export function parseTrochaic(overt: Syllable[]): ProsodicWord {
       push({ s1: prev, s2: s }, undefined)
     } else {
       // 'hh  -> push ('h), prev =  h
-      
+
       // 'l'l -> push ('l), prev = 'l
       // 'h'l -> push ('h), prev = 'l
       // 'l'h -> push ('l), prev = 'h
@@ -196,33 +196,70 @@ export let allFeetLeft: StressMark = {
   kind: "mark",
   name: "AllFeetLeft",
   evaluate(overt) {
-    let i = 0
-    let leftEdgeCount = 0
-    for (let sf of parseTrochaic(overt).feet) {
-      if (isFoot(sf)) {
-        leftEdgeCount += i
-        i += sf.s2 ? 2 : 1
-      } else {
-        i++
-      }
-    }
-    return leftEdgeCount
+    return alignFeetToWord("l", overt.length, parseTrochaic(overt), isFoot)
   },
 }
 export let allFeetRight: StressMark = {
   kind: "mark",
   name: "AllFeetRight",
   evaluate(overt) {
-    let i = 0
-    let rightEdgeCount = 0
-    for (let sf of parseTrochaic(overt).feet) {
-      if (isFoot(sf)) {
-        i += sf.s2 ? 2 : 1
-        rightEdgeCount += overt.length - i
-      } else {
-        i++
+    return alignFeetToWord("r", overt.length, parseTrochaic(overt), isFoot)
+  },
+}
+export let mainLeft: StressMark = {
+  kind: "mark",
+  name: "MainLeft",
+  evaluate(overt) {
+    return alignFeetToWord("l", overt.length, parseTrochaic(overt), isHeadFoot)
+  },
+}
+export let mainRight: StressMark = {
+  kind: "mark",
+  name: "MainRight",
+  evaluate(overt) {
+    return alignFeetToWord("r", overt.length, parseTrochaic(overt), isHeadFoot)
+  },
+}
+export let wordFootLeft: StressMark = {
+  kind: "mark",
+  name: "WordFootLeft",
+  evaluate(overt) {
+    return overt.length === 0 || isFoot(parseTrochaic(overt).feet[0]) ? 0 : 1
+  },
+}
+export let wordFootRight: StressMark = {
+  kind: "mark",
+  name: "WordFootRight",
+  evaluate(overt) {
+    return overt.length === 0 || isFoot(parseTrochaic(overt).feet.at(-1)!) ? 0 : 1
+  },
+}
+function isHeadFoot(sf: Syllable | Foot): sf is Foot {
+  return isFoot(sf) && (sf.s1.stress === "primary" || sf.s2?.stress === "primary")
+}
+function alignFeetToWord(
+  direction: "l" | "r",
+  syllableCount: number,
+  word: ProsodicWord,
+  predicate: (sf: Syllable | Foot) => boolean
+): number {
+  let i = 0
+  let totalMisalignment = 0
+  for (let foot of word.feet) {
+    if (direction === "l") {
+      if (predicate(foot)) {
+        totalMisalignment += i
+      }
+      i += footSize(foot)
+    } else {
+      i += footSize(foot)
+      if (predicate(foot)) {
+        totalMisalignment += syllableCount - i
       }
     }
-    return rightEdgeCount
-  },
+  }
+  return totalMisalignment
+}
+function footSize(sf: Syllable | Foot) {
+  return isFoot(sf) && sf.s2 ? 2 : 1
 }
