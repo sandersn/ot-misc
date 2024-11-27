@@ -3,6 +3,7 @@
 _darcs/
 .svn/
 .koka/
+.vscode/
 build/
 etc/
 dist/

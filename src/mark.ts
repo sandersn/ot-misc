@@ -22,14 +22,14 @@ export function onsetRepair(output: string): string[] {
   let epenthesise = (syllable: string) => "t" + syllable
   let syllables = syllabify(unifeat.phonesToFeatures(output))
   let opss: ((s: string) => string)[][] = sequence(
-    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise])),
+    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise]))
   )
   // TODO: Hacky that the inner algorithm is in syllables but the outer is in strings. It was just easier to test, I bet.
   let syllables2 = recreateSyllables(syllables)
   return opss.map(ops =>
     zipWith(ops, syllables2, (op, syll) => op(syll))
       .flat()
-      .join(""),
+      .join("")
   )
 }
 /**
@@ -122,72 +122,48 @@ export function syllabify(phs: Phoneme[]): Phoneme[][] {
 }
 /**
  * NOTE: Empty strings return a sentinel head (no stress at all).
- * TODO: I'm not certain that "unfooted" is the same as "degenerate foot", so maybe I should be generating degenerate feet instead.
- * NOTE: I'm pretty sure stress parsing is actually ambiguous, or at least requires lookahead, or *at least* requires a normal parser.
- * But it's *usually* a trochaic word, or at least a foot at the beginning of the word, which this parser should handle.
- * The bad input is .'.., which could parse as (.'.). or .('..). This parser always produces the former.
+ * NOTE: I'm pretty sure stress parsing is actually ambiguous, perhaps only two-way: between trochaic and iambic.
+ * Since I'm working with a trochaic language for now, I'm just going to write a deterministic trochaic parser.
+ * A good example ambiguous input is .'.., which could parse as (.'.). or .('..). This parser always produces the latter.
  */
-export function parseStress(overt: Syllable[]): ProsodicWord {
+export function parseTrochaic(overt: Syllable[]): ProsodicWord {
   let sentinelHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
   if (overt.length === 0) {
     return { head: sentinelHead, feet: [] }
   }
-  let foot = { s1: undefined, s2: undefined }
   let feet: (Foot | Syllable)[] = []
   let prev: Syllable | undefined
+  function push(s: Syllable | Foot, next: Syllable | undefined) {
+    feet.push(s)
+    prev = next
+  }
   for (const s of overt) {
     if (!prev) {
       // x -> prev = x
       prev = s
-    } else if (s.stress === "unstressed" && prev.stress === "unstressed") {
-      // xy -> push x, prev = y
-      feet.push(prev)
-      prev = s
-    } else if (s.weight === "l") {
-      if (s.stress === "unstressed") {
-        // 'xl -> push ('xl), prev = undefined
-        feet.push({ s1: prev, s2: s })
-        prev = undefined
-      } else {
-        // x'l -> push (x'l), prev = undefined -- but (h'l)??
-        // 'x'l -> push ('x), prev = 'l
-        if (prev.stress === "unstressed") {
-          feet.push({ s1: prev, s2: s })
-          prev = undefined
-        } else {
-          feet.push({ s1: prev })
-          prev = s
-        }
-      }
-    } else if (s.weight === "h") {
-      if (s.stress === "unstressed") {
-        // 'lh -> push ('lh), prev = undefined ??
-        // 'hh -> push ('h), prev = h
-        if (prev.weight === "l") {
-          feet.push({ s1: prev, s2: s })
-          prev = undefined
-        } else {
-          feet.push({ s1: prev })
-          prev = s
-        }
-      } else {
-        // l'h -> push (l'h), prev = undefined
-        // h'h -> push h, prev = 'h
-        // 'x'h -> push ('x), prev = 'h
-        if (prev.stress === "unstressed") {
-          if (prev.weight === "l") {
-            feet.push({ s1: prev, s2: s })
-            prev = undefined
-          } else {
-            feet.push(prev)
-            prev = s
-          }
-        } else {
-          feet.push({ s1: prev })
-          prev = s
-        }
-      }
-      foot.s1
+    } else if (prev.stress === "unstressed") {
+      // ll  -> push l, prev =  l
+      // hl  -> push h, prev =  l
+      // l'l -> push l, prev = 'l
+      // h'l -> push h, prev = 'l
+      // lh  -> push l, prev =  l
+      // hh  -> push h, prev =  h
+      // l'h -> push l, prev = 'h
+      // h'h -> push h, prev = 'h
+      push(prev, s)
+    } else if (s.stress === "unstressed" && !(prev.weight === "h" && s.weight === "h")) {
+      // 'll -> push ('ll), prev = undefined
+      // 'hl -> push ('hl), prev = undefined
+      // 'lh -> push ('lh), prev = undefined
+      push({ s1: prev, s2: s }, undefined)
+    } else {
+      // 'hh  -> push ('h), prev =  h
+      
+      // 'l'l -> push ('l), prev = 'l
+      // 'h'l -> push ('h), prev = 'l
+      // 'l'h -> push ('l), prev = 'h
+      // 'h'h -> push ('h), prev = 'h
+      push({ s1: prev }, s)
     }
   }
   if (prev) {
@@ -199,7 +175,7 @@ export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
   evaluate(overt) {
-    return count(parseStress(overt).feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === "l")
+    return count(parseTrochaic(overt).feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === "l")
   },
 }
 export let wsp: StressMark = {
@@ -213,7 +189,7 @@ export let parse: StressMark = {
   kind: "mark",
   name: "Parse",
   evaluate(overt) {
-    return count(parseStress(overt).feet, isSyllable)
+    return count(parseTrochaic(overt).feet, isSyllable)
   },
 }
 export let allFeetLeft: StressMark = {
@@ -222,7 +198,7 @@ export let allFeetLeft: StressMark = {
   evaluate(overt) {
     let i = 0
     let leftEdgeCount = 0
-    for (let sf of parseStress(overt).feet) {
+    for (let sf of parseTrochaic(overt).feet) {
       if (isFoot(sf)) {
         leftEdgeCount += i
         i += sf.s2 ? 2 : 1
@@ -239,7 +215,7 @@ export let allFeetRight: StressMark = {
   evaluate(overt) {
     let i = 0
     let rightEdgeCount = 0
-    for (let sf of parseStress(overt).feet) {
+    for (let sf of parseTrochaic(overt).feet) {
       if (isFoot(sf)) {
         i += sf.s2 ? 2 : 1
         rightEdgeCount += overt.length - i

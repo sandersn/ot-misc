@@ -165,7 +165,7 @@ testall("General OT tests", {
     equal(mark.onsetRepair("inkomai"), qw("inkomai inkoma inkomati komai koma komati tinkomai tinkoma tinkomati"))
   },
   parseStressEmpty() {
-    equal(mark.parseStress([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] })
+    equal(mark.parseTrochaic([]), { head: { s1: { stress: undefined, weight: "l" }, s2: undefined }, feet: [] })
   },
   parseEvalOneHeavy: markEval(mark.parse, "_", 1),
   parseEvalOneLight: markEval(mark.parse, ".", 1),
@@ -193,57 +193,57 @@ testall("General OT tests", {
   aflEvalOneLight: markEval(mark.allFeetLeft, "'.", 0),
   aflEvalOneHeavy: markEval(mark.allFeetLeft, "'_", 0),
   aflEvalTwo: markEval(mark.allFeetLeft, "'..", 0),
-  aflEvalFourOneStress: markEval(mark.allFeetLeft, "..'..", 1),
+  aflEvalFourOneStress: markEval(mark.allFeetLeft, "..'..", 2),
   aflEvalFourTwoStress: markEval(mark.allFeetLeft, "'..'..", 2),
-  aflEvalFiveTwoStressInitial: markEval(mark.allFeetLeft, "'...'..", 2),
-  aflEvalFiveTwoStress: markEval(mark.allFeetLeft, ".'..'..", 2),
+  aflEvalFiveTwoStressInitial: markEval(mark.allFeetLeft, "'...'..", 3),
+  aflEvalFiveTwoStress: markEval(mark.allFeetLeft, ".'..'..", 4),
   afrEvalEmpty: markEval(mark.allFeetRight, "", 0),
   afrEvalOneUnstressed: markEval(mark.allFeetRight, ".", 0),
   afrEvalOneLight: markEval(mark.allFeetRight, "'.", 0),
   afrEvalOneHeavy: markEval(mark.allFeetRight, "'_", 0),
   afrEvalTwo: markEval(mark.allFeetRight, "'..", 0),
-  afrEvalFourOneStress: markEval(mark.allFeetRight, "..'..", 1),
+  afrEvalFourOneStress: markEval(mark.allFeetRight, "..'..", 0),
   afrEvalFourTwoStress: markEval(mark.allFeetRight, "'..'..", 2),
-  afrEvalFiveTwoStressInitial: markEval(mark.allFeetRight, "'...'..", 4),
-  afrEvalFiveTwoStress: markEval(mark.allFeetRight, ".'..'..", 4),
+  afrEvalFiveTwoStressInitial: markEval(mark.allFeetRight, "'...'..", 3),
+  afrEvalFiveTwoStress: markEval(mark.allFeetRight, ".'..'..", 2),
 })
 let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
-markParseStressAll([
+markParseTrochaicAll([
   [".", "."],
   ["'.", "('.)"],
   ["'_", "('_)"],
   ["_", "_"],
   ["'..", "('..)"],
-  [".'.", "(.'.)"],
+  [".'.", ".('.)"],
   ["'_.", "('_.)"],
-  [".'_", "(.'_)"],
+  [".'_", ".('_)"],
   ["'._", "('._)"],
-  ["_'.", "(_'.)"],
+  ["_'.", "_('.)"],
   ["'_'_", "('_)('_)"],
   ["'__", "('_)_"],
   ["_'_", "_('_)"],
   // TODO: Way more tests needed about here
   ["'...", "('..)."],
-  [".'..", "(.'.)."],
-  ["..'.", ".(.'.)"],
+  [".'..", ".('..)"],
+  ["..'.", "..('.)"],
   ["'....", "('..).."],
   ["'.....", "('..)..."],
-  ["..'..", ".(.'.)."],
-  [".'..'..", "(.'.)(.'.)."],
-  ["'...'..", "('..)(.'.)."],
-  ["'....'.", "('..).(.'.)"],
+  ["..'..", "..('..)"],
+  [".'..'..", ".('..)('..)"],
+  ["'...'..", "('..).('..)"],
+  ["'....'.", "('..)..('.)"],
   ["'......", "('..)...."],
-  [".....'.", "....(.'.)"],
+  [".....'.", ".....('.)"],
 ])
-function markParseStressAll(pairs: [string, string][]): void {
+function markParseTrochaicAll(pairs: [string, string][]): void {
   suite("mark.parseStress", () => {
     for (let [overt, word] of pairs) {
-      test(`${overt} => ${word}`, markParseStress(overt, word))
+      test(`${overt} => ${word}`, markParseTrochaic(overt, word))
     }
   })
 }
-function markParseStress(overt: string, word: string): () => void {
-  const actual = mark.parseStress(stressOvert(overt))
+function markParseTrochaic(overt: string, word: string): () => void {
+  const actual = mark.parseTrochaic(stressOvert(overt))
   return () => equal(actual, prosodicWord(word, defaultHead), `expected: ${word} -- received: ${formatStress(actual)}`)
 }
 function prosodicWord(stress: string, head?: Foot): ProsodicWord {
