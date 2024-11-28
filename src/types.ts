@@ -41,21 +41,19 @@ export function isSyllable(s: Foot | Syllable): s is Syllable {
 export type ProsodicWord = {
   head: Foot
   feet: (Foot | Syllable)[]
+  syllables(): Syllable[]
+  length(): number
 }
 // TODO: Unify these with normal faith/mark once I have a good representation for each
 export type StressFaith = {
   kind: "faith"
   name: string
-  evaluate(overt: Syllable[], parse: ProsodicWord): number
-  // parse(overt: Syllable[], parse: ProsodicWord): ProsodicWord;
-  // generate(underlying: Syllable[], parse: ProsodicWord): ProsodicWord[];
+  evaluate(overt: ProsodicWord, parse: ProsodicWord): number
 }
 export type StressMark = {
   kind: "mark"
   name: string
-  evaluate(overt: Syllable[]): number
-  // parse(overt: Syllable[]): ProsodicWord;
-  // generate(underlying: Syllable[]): ProsodicWord[];
+  evaluate(overt: ProsodicWord): number
 }
 export type StressConstraint = StressMark | StressFaith
 
@@ -65,11 +63,42 @@ export function Faith(name: string, faith: (input: string, output: string) => nu
 export function Mark(name: string, mark: (input: string) => number): Mark {
   return { kind: "mark", name, eval: mark }
 }
-export function StressFaith(name: string, evaluate: (overt: Syllable[], parse: ProsodicWord) => number): StressFaith {
+export function StressFaith(name: string, evaluate: (overt: ProsodicWord, parse: ProsodicWord) => number): StressFaith {
   return { kind: "faith", name, evaluate }
 }
-export function StressMark(name: string, evaluate: (overt: Syllable[]) => number): StressMark {
+export function StressMark(name: string, evaluate: (overt: ProsodicWord) => number): StressMark {
   return { kind: "mark", name, evaluate }
+}
+export function ProsodicWord(head: Foot, feet: (Foot | Syllable)[]): ProsodicWord {
+  return {
+    head,
+    feet,
+    syllables() {
+      let ss = []
+      for (const foot of this.feet) {
+        if (isSyllable(foot)) {
+          ss.push(foot)
+        } else {
+          ss.push(foot.s1)
+          if (foot.s2) {
+            ss.push(foot.s2)
+          }
+        }
+      }
+      return ss
+    },
+    length() {
+      let len = 0
+      for (const foot of this.feet) {
+        if (isSyllable(foot)) {
+          len++
+        } else {
+          len += foot.s2 ? 2 : 1
+        }
+      }
+      return len
+    },
+  }
 }
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
 /**

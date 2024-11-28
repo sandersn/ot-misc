@@ -1,6 +1,6 @@
 import * as unifeat from "./unifeat.ts"
-import { Mark, isFoot, isSyllable } from "./types.ts"
-import type { Phoneme, StressMark, Syllable, Foot, ProsodicWord } from "./types.ts"
+import { Mark, ProsodicWord, isFoot, isSyllable } from "./types.ts"
+import type { Phoneme, StressMark, Syllable, Foot } from "./types.ts"
 import { zipWith, count, sequence } from "./util/array.ts"
 
 unifeat.phonemes
@@ -129,7 +129,7 @@ export function syllabify(phs: Phoneme[]): Phoneme[][] {
 export function parseTrochaic(overt: Syllable[]): ProsodicWord {
   let sentinelHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
   if (overt.length === 0) {
-    return { head: sentinelHead, feet: [] }
+    return ProsodicWord(sentinelHead, [])
   }
   let feet: (Foot | Syllable)[] = []
   let prev: Syllable | undefined
@@ -169,69 +169,69 @@ export function parseTrochaic(overt: Syllable[]): ProsodicWord {
   if (prev) {
     feet.push(prev.stress === "unstressed" ? prev : { s1: prev })
   }
-  return { head: feet?.find(isFoot) ?? sentinelHead, feet }
+  return ProsodicWord(feet?.find(isFoot) ?? sentinelHead, feet)
 }
 export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
   evaluate(overt) {
-    return count(parseTrochaic(overt).feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === "l")
+    return count(overt.feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === "l")
   },
 }
 export let wsp: StressMark = {
   kind: "mark",
   name: "WSP",
   evaluate(overt) {
-    return count(overt, s => s.weight === "h" && s.stress === "unstressed")
+    return count(overt.syllables(), s => s.weight === "h" && s.stress === "unstressed")
   },
 }
 export let parse: StressMark = {
   kind: "mark",
   name: "Parse",
   evaluate(overt) {
-    return count(parseTrochaic(overt).feet, isSyllable)
+    return count(overt.feet, isSyllable)
   },
 }
 export let allFeetLeft: StressMark = {
   kind: "mark",
   name: "AllFeetLeft",
   evaluate(overt) {
-    return alignFeetToWord("l", overt.length, parseTrochaic(overt), isFoot)
+    return alignFeetToWord("l", overt, isFoot)
   },
 }
 export let allFeetRight: StressMark = {
   kind: "mark",
   name: "AllFeetRight",
   evaluate(overt) {
-    return alignFeetToWord("r", overt.length, parseTrochaic(overt), isFoot)
+    return alignFeetToWord("r", overt, isFoot)
   },
 }
 export let mainLeft: StressMark = {
   kind: "mark",
   name: "MainLeft",
   evaluate(overt) {
-    return alignFeetToWord("l", overt.length, parseTrochaic(overt), isHeadFoot)
+    return alignFeetToWord("l", overt, isHeadFoot)
   },
 }
 export let mainRight: StressMark = {
   kind: "mark",
   name: "MainRight",
   evaluate(overt) {
-    return alignFeetToWord("r", overt.length, parseTrochaic(overt), isHeadFoot)
+    return alignFeetToWord("r", overt, isHeadFoot)
   },
 }
 export let wordFootLeft: StressMark = {
   kind: "mark",
   name: "WordFootLeft",
   evaluate(overt) {
-    return overt.length === 0 || isFoot(parseTrochaic(overt).feet[0]) ? 0 : 1
+    return overt.feet.length === 0 || isFoot(overt.feet[0]) ? 0 : 1
   },
 }
 export let wordFootRight: StressMark = {
   kind: "mark",
   name: "WordFootRight",
   evaluate(overt) {
-    return overt.length === 0 || isFoot(parseTrochaic(overt).feet.at(-1)!) ? 0 : 1
+    return overt.feet.length === 0 || isFoot(overt.feet.at(-1)!) ? 0 : 1
   },
 }
 function isHeadFoot(sf: Syllable | Foot): sf is Foot {
@@ -239,11 +239,11 @@ function isHeadFoot(sf: Syllable | Foot): sf is Foot {
 }
 function alignFeetToWord(
   direction: "l" | "r",
-  syllableCount: number,
   word: ProsodicWord,
   predicate: (sf: Syllable | Foot) => boolean
 ): number {
   let i = 0
+  let len = word.length()
   let totalMisalignment = 0
   for (let foot of word.feet) {
     if (direction === "l") {
@@ -254,7 +254,7 @@ function alignFeetToWord(
     } else {
       i += footSize(foot)
       if (predicate(foot)) {
-        totalMisalignment += syllableCount - i
+        totalMisalignment += len - i
       }
     }
   }
