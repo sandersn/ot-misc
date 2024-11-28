@@ -245,6 +245,23 @@ testall("General OT tests", {
   wfrEvalTwoInitial: markEval(mark.wordFootRight, "'..", 0),
   wfrEvalFiveFinal: markEval(mark.wordFootRight, "....'.", 0),
   wfrEvalFiveTwoStressed: markEval(mark.wordFootRight, ".'..'..", 0),
+  iambicEvalEmpty: markEval(mark.iambic, "", 0),
+  iambicEvalOne: markEval(mark.iambic, ".", 0),
+  iambicEvalTwoInitial: markEval(mark.iambic, "'..", 1),
+  iambicEvalTwo: markEval(mark.iambic, ".'.", 0),
+  iambicEvalFour: markEval(mark.iambic, "'..'..", 2),
+  footNonFinalEvalEmpty: markEval(mark.footNonFinal, "", 0),
+  footNonFinalEvalOne: markEval(mark.footNonFinal, ".", 0),
+  footNonFinalEvalOneStress: markEval(mark.footNonFinal, "'.", 1),
+  footNonFinalEvalTwoInitial: markEval(mark.footNonFinal, "'..", 0),
+  footNonFinalEvalTwoFinal: markEval(mark.footNonFinal, ".'.", 1),
+  footNonFinalEvalThree: markEval(mark.footNonFinal, "'..'.", 1),
+  nonFinalEvalEmpty: markEval(mark.nonFinal, "", 0),
+  nonFinalEvalOne: markEval(mark.nonFinal, ".", 0),
+  nonFinalEvalOneStress: markEval(mark.nonFinal, "'.", 1),
+  nonFinalEvalTwo: markEval(mark.nonFinal, "'..", 1),
+  nonFinalEvalThreeInitial: markEval(mark.nonFinal, "'...", 0),
+  nonFinalEvalThreeInitialSecondary: markEval(mark.nonFinal, "'..`.", 1),
 })
 let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
 markParseTrochaicAll([

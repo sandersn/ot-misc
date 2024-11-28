@@ -234,6 +234,27 @@ export let wordFootRight: StressMark = {
     return overt.feet.length === 0 || isFoot(overt.feet.at(-1)!) ? 0 : 1
   },
 }
+export let iambic: StressMark = {
+  kind: "mark",
+  name: "Iambic",
+  evaluate(overt) {
+    return count(overt.feet, sf => isFoot(sf) && sf.s1.stress !== "unstressed" && !!sf.s2)
+  },
+}
+export let footNonFinal: StressMark = {
+  kind: "mark",
+  name: "FootNonFinal",
+  evaluate(overt) {
+    return count(overt.feet, sf => isFoot(sf) && (sf.s1.stress === "unstressed" || !sf.s2))
+  },
+}
+export let nonFinal: StressMark = {
+  kind: "mark",
+  name: "NonFinal",
+  evaluate(overt) {
+    return overt.feet.length > 0 && isFoot(overt.feet.at(-1)!) ? 1 : 0
+  },
+}
 function isHeadFoot(sf: Syllable | Foot): sf is Foot {
   return isFoot(sf) && (sf.s1.stress === "primary" || sf.s2?.stress === "primary")
 }
