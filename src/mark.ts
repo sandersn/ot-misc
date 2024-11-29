@@ -1,6 +1,7 @@
 import * as unifeat from "./unifeat.ts"
-import { Mark, ProsodicWord, isFoot, isSyllable } from "./types.ts"
-import type { Phoneme, StressMark, Syllable, Foot } from "./types.ts"
+import { isFoot, isSyllable, syllables, length } from "./word.ts"
+import { Mark } from "./types.ts"
+import type { Word, Phoneme, StressMark, Syllable, Foot } from "./types.ts"
 import { zipWith, count, sequence } from "./util/array.ts"
 
 unifeat.phonemes
@@ -120,57 +121,6 @@ export function syllabify(phs: Phoneme[]): Phoneme[][] {
     }
   }
 }
-/**
- * NOTE: Empty strings return a sentinel head (no stress at all).
- * NOTE: I'm pretty sure stress parsing is actually ambiguous, perhaps only two-way: between trochaic and iambic.
- * Since I'm working with a trochaic language for now, I'm just going to write a deterministic trochaic parser.
- * A good example ambiguous input is .'.., which could parse as (.'.). or .('..). This parser always produces the latter.
- */
-export function parseTrochaic(overt: Syllable[]): ProsodicWord {
-  let sentinelHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
-  if (overt.length === 0) {
-    return ProsodicWord(sentinelHead, [])
-  }
-  let feet: (Foot | Syllable)[] = []
-  let prev: Syllable | undefined
-  function push(s: Syllable | Foot, next: Syllable | undefined) {
-    feet.push(s)
-    prev = next
-  }
-  for (const s of overt) {
-    if (!prev) {
-      // x -> prev = x
-      prev = s
-    } else if (prev.stress === "unstressed") {
-      // ll  -> push l, prev =  l
-      // hl  -> push h, prev =  l
-      // l'l -> push l, prev = 'l
-      // h'l -> push h, prev = 'l
-      // lh  -> push l, prev =  l
-      // hh  -> push h, prev =  h
-      // l'h -> push l, prev = 'h
-      // h'h -> push h, prev = 'h
-      push(prev, s)
-    } else if (s.stress === "unstressed" && !(prev.weight === "h" && s.weight === "h")) {
-      // 'll -> push ('ll), prev = undefined
-      // 'hl -> push ('hl), prev = undefined
-      // 'lh -> push ('lh), prev = undefined
-      push({ s1: prev, s2: s }, undefined)
-    } else {
-      // 'hh  -> push ('h), prev =  h
-
-      // 'l'l -> push ('l), prev = 'l
-      // 'h'l -> push ('h), prev = 'l
-      // 'l'h -> push ('l), prev = 'h
-      // 'h'h -> push ('h), prev = 'h
-      push({ s1: prev }, s)
-    }
-  }
-  if (prev) {
-    feet.push(prev.stress === "unstressed" ? prev : { s1: prev })
-  }
-  return ProsodicWord(feet?.find(isFoot) ?? sentinelHead, feet)
-}
 export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
@@ -182,7 +132,7 @@ export let wsp: StressMark = {
   kind: "mark",
   name: "WSP",
   evaluate(overt) {
-    return count(overt.syllables(), s => s.weight === "h" && s.stress === "unstressed")
+    return count(syllables(overt), s => s.weight === "h" && s.stress === "unstressed")
   },
 }
 export let parse: StressMark = {
@@ -258,13 +208,9 @@ export let nonFinal: StressMark = {
 function isHeadFoot(sf: Syllable | Foot): sf is Foot {
   return isFoot(sf) && (sf.s1.stress === "primary" || sf.s2?.stress === "primary")
 }
-function alignFeetToWord(
-  direction: "l" | "r",
-  word: ProsodicWord,
-  predicate: (sf: Syllable | Foot) => boolean
-): number {
+function alignFeetToWord(direction: "l" | "r", word: Word, predicate: (sf: Syllable | Foot) => boolean): number {
   let i = 0
-  let len = word.length()
+  let len = length(word)
   let totalMisalignment = 0
   for (let foot of word.feet) {
     if (direction === "l") {

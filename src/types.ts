@@ -26,34 +26,27 @@ export type Foot = {
   s1: Syllable
   s2?: Syllable
 }
-export function isFoot(s: Foot | Syllable): s is Foot {
-  return "s1" in s
-}
-export function isSyllable(s: Foot | Syllable): s is Syllable {
-  return "weight" in s
-}
 /**
- * Additional rules:
+ * Additional rules not enforced by this type:
  * - Unfooted syllables must be unstressed.
  * - Each foot has exactly one head syllable, which is the only stressed one in that foot.
  * - Head foot's head syllable must have primary stress; other feet's head syllables must have secondary.
+ * - All words must have a head.
  */
-export type ProsodicWord = {
-  head: Foot
+export type Word = {
+  head: Foot | undefined
   feet: (Foot | Syllable)[]
-  syllables(): Syllable[]
-  length(): number
 }
 // TODO: Unify these with normal faith/mark once I have a good representation for each
 export type StressFaith = {
   kind: "faith"
   name: string
-  evaluate(overt: ProsodicWord, parse: ProsodicWord): number
+  evaluate(underlying: Word, parse: Word): number
 }
 export type StressMark = {
   kind: "mark"
   name: string
-  evaluate(overt: ProsodicWord): number
+  evaluate(parse: Word): number
 }
 export type StressConstraint = StressMark | StressFaith
 
@@ -63,42 +56,11 @@ export function Faith(name: string, faith: (input: string, output: string) => nu
 export function Mark(name: string, mark: (input: string) => number): Mark {
   return { kind: "mark", name, eval: mark }
 }
-export function StressFaith(name: string, evaluate: (overt: ProsodicWord, parse: ProsodicWord) => number): StressFaith {
+export function StressFaith(name: string, evaluate: (overt: Word, parse: Word) => number): StressFaith {
   return { kind: "faith", name, evaluate }
 }
-export function StressMark(name: string, evaluate: (overt: ProsodicWord) => number): StressMark {
+export function StressMark(name: string, evaluate: (overt: Word) => number): StressMark {
   return { kind: "mark", name, evaluate }
-}
-export function ProsodicWord(head: Foot, feet: (Foot | Syllable)[]): ProsodicWord {
-  return {
-    head,
-    feet,
-    syllables() {
-      let ss = []
-      for (const foot of this.feet) {
-        if (isSyllable(foot)) {
-          ss.push(foot)
-        } else {
-          ss.push(foot.s1)
-          if (foot.s2) {
-            ss.push(foot.s2)
-          }
-        }
-      }
-      return ss
-    },
-    length() {
-      let len = 0
-      for (const foot of this.feet) {
-        if (isSyllable(foot)) {
-          len++
-        } else {
-          len += foot.s2 ? 2 : 1
-        }
-      }
-      return len
-    },
-  }
 }
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
 /**
