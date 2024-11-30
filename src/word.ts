@@ -42,22 +42,11 @@ export class Word {
     return formatWord(this)
   }
 }
+function findHead(feet: Array<Foot | Syllable>): Foot | undefined {
+  return feet.find(f => isFoot(f) && (f.s1.stress === "primary" || f.s2?.stress === "primary")) as Foot
+}
 function append(word: Word, foot: Foot | Syllable): Word {
   return new Word([...word.feet, foot])
-}
-function appendToLastFoot(foot: Syllable, stress: "primary" | "secondary"): (word: Word) => Word | undefined {
-  return word => {
-    if (word.feet.length === 0) {
-      return undefined
-    }
-    let last = word.feet.at(-1)
-    if (!(last && isFoot(last) && !last.s2)) {
-      return undefined
-    }
-    let feet = word.feet.slice(0, -1)
-    feet.push({ ...last, s2: last.s1.stress === "unstressed" ? { ...foot, stress } : foot })
-    return new Word(feet)
-  }
 }
 function empty(): Word {
   return new Word([])
@@ -133,12 +122,11 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
         hierarchy,
       ), // M F1 NoS
       evaluate(
-        prev.map(pw => append(pw, { s1: { ...s, stress: "primary" } })).filter(w => w.head),
+        prev.map(pw => append(pw, { s1: { ...s, stress: pw.head ? "secondary" : "primary" } })).filter(w => w.head),
         hierarchy,
       ), // M F1 S
       evaluate(prev.map(appendToLastFoot(s, "primary")).filter(w => w && w.head) as Word[], hierarchy), // M F2
     ].filter(w => !!w)
-    console.log(prev.map(formatWord))
   }
   return (
     evaluate(
@@ -146,6 +134,21 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
       hierarchy,
     ) ?? empty()
   )
+}
+function appendToLastFoot(syllable: Syllable, stress: "primary" | "secondary"): (word: Word) => Word | undefined {
+  return word => {
+    if (word.feet.length === 0) {
+      return undefined
+    }
+    let last = word.feet.at(-1)
+    if (!(last && isFoot(last) && !last.s2)) {
+      return undefined
+    }
+    stress = word.head ? "secondary" : stress
+    let feet = word.feet.slice(0, -1)
+    feet.push({ ...last, s2: last.s1.stress === "unstressed" ? { ...syllable, stress } : syllable })
+    return new Word(feet)
+  }
 }
 /**
  * NOTE: Empty strings return an undefined head.
@@ -194,7 +197,4 @@ export function parseTrochaic(overt: Syllable[]): Word {
     feet.push(prev.stress === "unstressed" ? prev : { s1: prev })
   }
   return new Word(feet)
-}
-export function findHead(feet: Array<Foot | Syllable>): Foot | undefined {
-  return feet.find(f => isFoot(f) && (f.s1.stress === "primary" || f.s2?.stress === "primary")) as Foot
 }
