@@ -43,7 +43,7 @@ export class Word {
   }
 }
 function findHead(feet: Array<Foot | Syllable>): Foot | undefined {
-  return feet.find(f => isFoot(f) && (f.s1.stress === "primary" || f.s2?.stress === "primary")) as Foot
+  return feet.find(f => isFoot(f) && (f.s1.stress === "'" || f.s2?.stress === "'")) as Foot
 }
 function append(word: Word, foot: Foot | Syllable): Word {
   return new Word([...word.feet, foot])
@@ -57,7 +57,7 @@ function formatWord(pw: Word): string {
     .join("")
 }
 function formatSyllable(s: Syllable): string {
-  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
+  return s.stress + s.weight
 }
 
 export function isFoot(s: Foot | Syllable): s is Foot {
@@ -93,6 +93,7 @@ function evaluate(candidates: Word[], hierarchy: StressMark[]): Word | undefined
 export function parseProduction(underlying: Syllable[], hierarchy: StressMark[]): Word {
   let prev = [empty()]
   for (let s of underlying) {
+    let stress = s.stress
     prev = [
       // NoM is "for descriptions that lack a main stress", whereas M is for ones that have it.
       // That means that
@@ -108,10 +109,10 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
         hierarchy,
       ), // NoM F1 NoS
       evaluate(
-        prev.map(pw => append(pw, { s1: { ...s, stress: "secondary" } })).filter(w => !w.head),
+        prev.map(pw => append(pw, { s1: { ...s, stress: "`" } })).filter(w => !w.head),
         hierarchy,
       ), // NoM F1 S
-      evaluate(prev.map(appendToLastFoot(s, "secondary")).filter(w => w && !w.head) as Word[], hierarchy), // NoM F2
+      evaluate(prev.map(appendToLastFoot(s, "'")).filter(w => w && !w.head) as Word[], hierarchy), // NoM F2
 
       evaluate(
         prev.map(pw => append(pw, s)).filter(w => w.head),
@@ -122,10 +123,10 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
         hierarchy,
       ), // M F1 NoS
       evaluate(
-        prev.map(pw => append(pw, { s1: { ...s, stress: pw.head ? "secondary" : "primary" } })).filter(w => w.head),
+        prev.map(pw => append(pw, { s1: { ...s, stress: pw.head ? "`" : "'" } })).filter(w => w.head),
         hierarchy,
       ), // M F1 S
-      evaluate(prev.map(appendToLastFoot(s, "primary")).filter(w => w && w.head) as Word[], hierarchy), // M F2
+      evaluate(prev.map(appendToLastFoot(s, "'")).filter(w => w && w.head) as Word[], hierarchy), // M F2
     ].filter(w => !!w)
   }
   return (
@@ -135,7 +136,7 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
     ) ?? empty()
   )
 }
-function appendToLastFoot(syllable: Syllable, stress: "primary" | "secondary"): (word: Word) => Word | undefined {
+function appendToLastFoot(syllable: Syllable, stress: "'" | "`"): (word: Word) => Word | undefined {
   return word => {
     if (word.feet.length === 0) {
       return undefined
@@ -144,9 +145,9 @@ function appendToLastFoot(syllable: Syllable, stress: "primary" | "secondary"): 
     if (!(last && isFoot(last) && !last.s2)) {
       return undefined
     }
-    stress = word.head ? "secondary" : stress
+    stress = word.head ? "`" : stress
     let feet = word.feet.slice(0, -1)
-    feet.push({ ...last, s2: last.s1.stress === "unstressed" ? { ...syllable, stress } : syllable })
+    feet.push({ ...last, s2: !last.s1.stress ? { ...syllable, stress } : syllable })
     return new Word(feet)
   }
 }
@@ -168,7 +169,7 @@ export function parseTrochaic(overt: Syllable[]): Word {
     if (!prev) {
       // x -> prev = x
       prev = s
-    } else if (prev.stress === "unstressed") {
+    } else if (!prev.stress) {
       // ll  -> push l, prev =  l
       // hl  -> push h, prev =  l
       // l'l -> push l, prev = 'l
@@ -178,7 +179,7 @@ export function parseTrochaic(overt: Syllable[]): Word {
       // l'h -> push l, prev = 'h
       // h'h -> push h, prev = 'h
       push(prev, s)
-    } else if (s.stress === "unstressed" && !(prev.weight === "h" && s.weight === "h")) {
+    } else if (!s.stress && !(prev.weight === "_" && s.weight === "_")) {
       // 'll -> push ('ll), prev = undefined
       // 'hl -> push ('hl), prev = undefined
       // 'lh -> push ('lh), prev = undefined
@@ -194,7 +195,7 @@ export function parseTrochaic(overt: Syllable[]): Word {
     }
   }
   if (prev) {
-    feet.push(prev.stress === "unstressed" ? prev : { s1: prev })
+    feet.push(prev.stress ? { s1: prev } : prev)
   }
   return new Word(feet)
 }

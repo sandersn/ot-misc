@@ -1,6 +1,6 @@
 import { suite, test } from "node:test"
 import assert, { deepEqual as equal, fail } from "node:assert"
-import type { Stress, Syllable, Foot } from "../types.ts"
+import type { Stress, Syllable, Foot, Weight } from "../types.ts"
 export function testall(suiteName: string, testo: Record<string, () => void>) {
   suite(suiteName, () => {
     for (let [name, f] of Object.entries(testo)) {
@@ -26,21 +26,21 @@ export function stressUnparsed(stress: string): Syllable[] {
  * ) end of foot
  */
 export function stressPattern(stress: string): (Syllable | Foot)[] {
-  let nextStress: Stress = "unstressed"
+  let nextStress: Stress = ""
   let foot: Syllable[] | undefined
   let syllables: (Syllable | Foot)[] = []
   for (let i = 0; i < stress.length; i++) {
     switch (stress[i]) {
       case "'":
-        nextStress = "primary"
+        nextStress = "'"
         break
       case "`":
-        nextStress = "secondary"
+        nextStress = "`"
         break
       case ".":
       case "_":
-        ;(foot ? foot : syllables).push({ stress: nextStress, weight: stress[i] === "." ? "l" : "h" })
-        nextStress = "unstressed"
+        ;(foot ? foot : syllables).push({ stress: nextStress, weight: stress[i] as Weight })
+        nextStress = ""
         break
       case "(":
         assert(!foot, "open parenthesis inside unclosed open parenthesis")

@@ -125,14 +125,14 @@ export let footBin: StressMark = {
   kind: "mark",
   name: "FootBin",
   evaluate(overt) {
-    return count(overt.feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === "l")
+    return count(overt.feet, sf => isFoot(sf) && sf.s2 === undefined && sf.s1.weight === ".")
   },
 }
 export let wsp: StressMark = {
   kind: "mark",
   name: "WSP",
   evaluate(overt) {
-    return count(overt.syllables(), s => s.weight === "h" && s.stress === "unstressed")
+    return count(overt.syllables(), s => s.weight === "_" && !s.stress)
   },
 }
 export let parse: StressMark = {
@@ -188,14 +188,14 @@ export let iambic: StressMark = {
   kind: "mark",
   name: "Iambic",
   evaluate(overt) {
-    return count(overt.feet, sf => isFoot(sf) && sf.s1.stress !== "unstressed" && !!sf.s2)
+    return count(overt.feet, sf => isFoot(sf) && !!sf.s1.stress && !!sf.s2)
   },
 }
 export let footNonFinal: StressMark = {
   kind: "mark",
   name: "FootNonFinal",
   evaluate(overt) {
-    return count(overt.feet, sf => isFoot(sf) && (sf.s1.stress === "unstressed" || !sf.s2))
+    return count(overt.feet, sf => isFoot(sf) && (!sf.s1.stress || !sf.s2))
   },
 }
 export let nonFinal: StressMark = {
@@ -206,7 +206,7 @@ export let nonFinal: StressMark = {
   },
 }
 function isHeadFoot(sf: Syllable | Foot): sf is Foot {
-  return isFoot(sf) && (sf.s1.stress === "primary" || sf.s2?.stress === "primary")
+  return isFoot(sf) && (sf.s1.stress === "'" || sf.s2?.stress === "'")
 }
 function alignFeetToWord(direction: "l" | "r", word: Word, predicate: (sf: Syllable | Foot) => boolean): number {
   let i = 0

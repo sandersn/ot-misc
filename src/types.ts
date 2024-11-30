@@ -13,15 +13,23 @@ export type Constraint = Faith | Mark
 export type Stratum = Constraint[]
 export type Strata = Stratum[]
 /// stress types ///
-export type Stress = "primary" | "secondary" | "unstressed"
 /**
- * Stress only applies to overt and parsed forms. It's undefined for underlying forms.
- * L = light
- * H = heavy
+ * ' = primary
+ * ` = secondary
+ *  = unstressed
+ */
+export type Stress = "'" | "`" | ""
+/**
+ * . = light
+ * _ = heavy
+ */
+export type Weight = "." | "_"
+/**
+ * Stress only applies to overt and parsed forms. It's always unstressed for underlying forms.
  */
 export type Syllable = {
-  weight: "l" | "h"
-  stress: Stress | undefined
+  weight: Weight
+  stress: Stress
 }
 export type Foot = {
   s1: Syllable
