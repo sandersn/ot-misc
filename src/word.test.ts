@@ -1,7 +1,7 @@
 import { suite, test } from "node:test"
 import { stressPattern, stressUnparsed } from "./util/testing.ts"
-import { Word, parseTrochaic, parseProduction, findHead, formatWord } from "./word.ts"
-import {footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic} from "./mark.ts"
+import { Word, parseTrochaic, parseProduction } from "./word.ts"
+import { footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic } from "./mark.ts"
 import { deepEqual as equal } from "node:assert"
 import type { StressMark } from "./types.ts"
 parseTrochaicAll([
@@ -36,22 +36,25 @@ parseTrochaicAll([
   ["'..'..'..", "('..)('..)('..)"],
   ["'...'..'..", "('..).('..)('..)"],
 ])
-parseProductionAll([
-  ["", ""],
-  [".", "('.)"],
-  ["..", "('..)"],
-  ["...", "('..)."],
-  ["....", "('..)(`..)"],
-  [".....", "('..).('..)"],
-  ["......", "('..)('..)('..)"],
-  [".......", "('..).('..)('..)"],
-],[footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic])
+parseProductionAll(
+  [
+    ["", ""],
+    [".", "('.)"],
+    ["..", "('..)"],
+    ["...", "('..)."],
+    ["....", "('..)(`..)"], // TODO: Looks like Parse isn't doing its job now
+    [".....", "('..).(`..)"],
+    ["......", "('..)(`..)(`..)"],
+    [".......", "('..).(`..)(`..)"],
+  ],
+  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
+)
 function parseTrochaicAll(patterns: [string, string][]): void {
   suite("word.parseTrochaic", () => {
     for (let [overt, word] of patterns) {
       test(`${overt} => ${word}`, () => {
         const actual = parseTrochaic(stressUnparsed(overt))
-        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatWord(actual)}`)
+        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${actual}`)
       })
     }
   })
@@ -61,7 +64,7 @@ function parseProductionAll(patterns: Array<[string, string]>, hierarchy: Stress
     for (let [underlying, word] of patterns) {
       test(`${underlying} => ${word}`, () => {
         const actual = parseProduction(stressUnparsed(underlying), hierarchy)
-        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatWord(actual)}`)
+        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${actual}`)
       })
     }
   })

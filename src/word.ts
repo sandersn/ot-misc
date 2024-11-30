@@ -38,6 +38,9 @@ export class Word {
     }
     return len
   }
+  toString() {
+    return formatWord(this)
+  }
 }
 function append(word: Word, foot: Foot | Syllable): Word {
   return new Word([...word.feet, foot])
@@ -59,19 +62,20 @@ function appendToLastFoot(foot: Syllable, stress: "primary" | "secondary"): (wor
 function empty(): Word {
   return new Word([])
 }
-export function isFoot(s: Foot | Syllable): s is Foot {
-  return "s1" in s
-}
-export function isSyllable(s: Foot | Syllable): s is Syllable {
-  return "weight" in s
-}
-export function formatWord(pw: Word): string {
+function formatWord(pw: Word): string {
   return pw.feet
     .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
     .join("")
 }
 function formatSyllable(s: Syllable): string {
   return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
+}
+
+export function isFoot(s: Foot | Syllable): s is Foot {
+  return "s1" in s
+}
+export function isSyllable(s: Foot | Syllable): s is Syllable {
+  return "weight" in s
 }
 
 /**
@@ -108,37 +112,40 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
       // (3) M F1 S and M F2 need to filter input for not having a main stress (if F2 would add a stress)
       evaluate(
         prev.map(pw => append(pw, s)).filter(w => !w.head),
-        hierarchy
+        hierarchy,
       ), // NoM NoF
       evaluate(
         prev.map(pw => append(pw, { s1: s })).filter(w => !w.head),
-        hierarchy
+        hierarchy,
       ), // NoM F1 NoS
       evaluate(
         prev.map(pw => append(pw, { s1: { ...s, stress: "secondary" } })).filter(w => !w.head),
-        hierarchy
+        hierarchy,
       ), // NoM F1 S
       evaluate(prev.map(appendToLastFoot(s, "secondary")).filter(w => w && !w.head) as Word[], hierarchy), // NoM F2
 
       evaluate(
         prev.map(pw => append(pw, s)).filter(w => w.head),
-        hierarchy
+        hierarchy,
       ), // M NoF
       evaluate(
         prev.map(pw => append(pw, { s1: s })).filter(w => w.head),
-        hierarchy
+        hierarchy,
       ), // M F1 NoS
       evaluate(
         prev.map(pw => append(pw, { s1: { ...s, stress: "primary" } })).filter(w => w.head),
-        hierarchy
+        hierarchy,
       ), // M F1 S
       evaluate(prev.map(appendToLastFoot(s, "primary")).filter(w => w && w.head) as Word[], hierarchy), // M F2
     ].filter(w => !!w)
     console.log(prev.map(formatWord))
   }
-  // TODO: check whether ALL winning candidates must have a head; I can't remember
-  let next = prev.filter(w => w.head)
-  return evaluate(next.length ? next : prev, hierarchy) ?? empty()
+  return (
+    evaluate(
+      prev.filter(w => w.head),
+      hierarchy,
+    ) ?? empty()
+  )
 }
 /**
  * NOTE: Empty strings return an undefined head.

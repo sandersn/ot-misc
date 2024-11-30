@@ -53,16 +53,16 @@ testall("General OT tests", {
     eq(
       ot.evaluate(
         Mark("mark-length", s => s.length),
-        ["hi"]
+        ["hi"],
       ),
-      2
+      2,
     )
     eq(
       ot.evaluate(
         Faith("faith-length", (x, y) => (x + y).length),
-        ["hi", "there"]
+        ["hi", "there"],
       ),
-      7
+      7,
     )
   },
   bounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),

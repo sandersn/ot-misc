@@ -1,4 +1,4 @@
-import type { Word } from './word.ts'
+import type { Word } from "./word.ts"
 export type Faith = {
   kind: "faith"
   name: string
