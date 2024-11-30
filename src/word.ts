@@ -1,4 +1,3 @@
-import assert from "node:assert"
 import type { StressMark, Foot, Syllable, Word } from "./types.ts"
 export function empty(): Word {
   return { head: undefined, feet: [] }
@@ -34,14 +33,25 @@ export function length(word: Word) {
   }
   return len
 }
+export function formatWord(pw: Word): string {
+  return pw.feet
+    .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
+    .join("")
+}
+function formatSyllable(s: Syllable): string {
+  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
+}
+
 /**
  * TODO: This should be in its own module eventually.
  * TODO: Look up the standard OT name for this
- * TODO: Either lift this to undefined/empty array, or wrap it in something that does.
  */
 function evaluate(candidates: Word[], hierarchy: StressMark[]): Word | undefined {
   if (candidates.length === 0) {
     return undefined
+  }
+  if (candidates.length === 1) {
+    return candidates[0]
   }
   for (let constraint of hierarchy) {
     let bounds = candidates.map(c => constraint.evaluate(c))
@@ -92,8 +102,11 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
       ), // M F1 S
       evaluate(prev.map(appendToLastFoot(s, "primary")).filter(w => w && w.head) as Word[], hierarchy), // M F2
     ].filter(w => !!w)
+    console.log(prev.map(formatWord))
   }
-  return evaluate(prev, hierarchy) ?? empty()
+  // TODO: check whether ALL winning candidates must have a head; I can't remember
+  let next = prev.filter(w => w.head)
+  return evaluate(next.length ? next : prev, hierarchy) ?? empty()
 }
 function append(word: Word, foot: Foot | Syllable): Word {
   let feet = [...word.feet, foot]

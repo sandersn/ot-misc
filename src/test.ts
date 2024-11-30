@@ -15,7 +15,7 @@ import {
 } from "./hydrogen.ts"
 import { rcd } from "./rcd.ts"
 import { Mark, Faith } from "./types.ts"
-import { isFoot, parseTrochaic, parseProduction, findHead } from "./word.ts"
+import { parseTrochaic, parseProduction, findHead, formatWord } from "./word.ts"
 import type { Syllable, Foot, Stress, StressMark, Word, StressConstraint } from "./types.ts"
 import fs from "node:fs"
 import * as ot from "./ot.ts"
@@ -262,7 +262,6 @@ testall("General OT tests", {
   nonFinalEvalThreeInitial: markEval(mark.nonFinal, "'...", 0),
   nonFinalEvalThreeInitialSecondary: markEval(mark.nonFinal, "'..`.", 1),
 })
-let defaultHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
 parseTrochaicAll([
   [".", "."],
   ["'.", "('.)"],
@@ -297,10 +296,10 @@ parseTrochaicAll([
 ])
 parseProductionAll([
   ["", ""],
-  [".", "."],
+  [".", "('.)"],
   ["..", "('..)"],
   ["...", "('..)."],
-  ["....", "('..)('..)"],
+  ["....", "('..)(`..)"],
   [".....", "('..).('..)"],
   ["......", "('..)('..)('..)"],
   [".......", "('..).('..)('..)"],
@@ -310,7 +309,7 @@ function parseTrochaicAll(patterns: [string, string][]): void {
     for (let [overt, word] of patterns) {
       test(`${overt} => ${word}`, () => {
         const actual = parseTrochaic(stressUnparsed(overt))
-        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatStress(actual)}`)
+        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatWord(actual)}`)
       })
     }
   })
@@ -320,7 +319,7 @@ function parseProductionAll(patterns: Array<[string, string]>, hierarchy: Stress
     for (let [underlying, word] of patterns) {
       test(`${underlying} => ${word}`, () => {
         const actual = parseProduction(stressUnparsed(underlying), hierarchy)
-        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatStress(actual)}`)
+        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatWord(actual)}`)
       })
     }
   })
@@ -329,15 +328,6 @@ function prosodicWord(stress: string): Word {
   let feet = stressPattern(stress)
   return { head: findHead(feet), feet }
 }
-function formatStress(pw: Word): string {
-  return pw.feet
-    .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
-    .join("")
-}
-function formatSyllable(s: Syllable): string {
-  return (s.stress === "primary" ? "'" : s.stress === "secondary" ? "`" : "") + (s.weight === "l" ? "." : "_")
-}
-
 function markEval(constraint: StressMark, overt: string, count: number): () => void {
   return () => equal(constraint.evaluate(parseTrochaic(stressUnparsed(overt))), count)
 }
