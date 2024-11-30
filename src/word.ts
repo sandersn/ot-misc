@@ -1,4 +1,4 @@
-import type { StressMark, Foot, Syllable } from "./types.ts"
+import type { StressMark, Foot, Syllable, Stress } from "./types.ts"
 /**
  * Additional rules not enforced by this type:
  * - Unfooted syllables must be unstressed.
@@ -90,51 +90,86 @@ function evaluate(candidates: Word[], hierarchy: StressMark[]): Word | undefined
 /**
  * NOTE: maybe hierarchy should be Array<Set<Constraint>> eventually
  */
-export function parseProduction(underlying: Syllable[], hierarchy: StressMark[]): Word {
-  let prev = [empty()]
-  for (let s of underlying) {
-    let stress = s.stress
-    prev = [
+export function parseProduction(syllables: Syllable[], hierarchy: StressMark[]): Word {
+  let best = [empty()]
+  for (let s of syllables) {
+    best = [
       // NoM is "for descriptions that lack a main stress", whereas M is for ones that have it.
       // That means that
       // (1) M needs to filter its output by having a main stress
       // (2) No M needs to filter its output by not having a main stress
       // (3) M F1 S and M F2 need to filter input for not having a main stress (if F2 would add a stress)
-      evaluate(
-        prev.map(pw => append(pw, s)).filter(w => !w.head),
-        hierarchy,
-      ), // NoM NoF
-      evaluate(
-        prev.map(pw => append(pw, { s1: s })).filter(w => !w.head),
-        hierarchy,
-      ), // NoM F1 NoS
-      evaluate(
-        prev.map(pw => append(pw, { s1: { ...s, stress: "`" } })).filter(w => !w.head),
-        hierarchy,
-      ), // NoM F1 S
-      evaluate(prev.map(appendToLastFoot(s, "'")).filter(w => w && !w.head) as Word[], hierarchy), // NoM F2
-
-      evaluate(
-        prev.map(pw => append(pw, s)).filter(w => w.head),
-        hierarchy,
-      ), // M NoF
-      evaluate(
-        prev.map(pw => append(pw, { s1: s })).filter(w => w.head),
-        hierarchy,
-      ), // M F1 NoS
-      evaluate(
-        prev.map(pw => append(pw, { s1: { ...s, stress: pw.head ? "`" : "'" } })).filter(w => w.head),
-        hierarchy,
-      ), // M F1 S
-      evaluate(prev.map(appendToLastFoot(s, "'")).filter(w => w && w.head) as Word[], hierarchy), // M F2
-    ].filter(w => !!w)
+      best.map(pw => append(pw, s)).filter(w => !w.head), // NoM NoF
+      best.map(pw => append(pw, { s1: s })).filter(w => !w.head), // NoM F1 NoS
+      best.map(pw => append(pw, { s1: { ...s, stress: "`" } })).filter(w => !w.head), // NoM F1 S
+      best.map(appendToLastFoot(s, "`")).filter(w => w && !w.head) as Word[], // NoM F2
+      best.map(pw => append(pw, s)).filter(w => w.head), // M NoF
+      best.map(pw => append(pw, { s1: s })).filter(w => w.head), // M F1 NoS
+      best.map(pw => append(pw, { s1: { ...s, stress: pw.head ? "`" : "'" } })).filter(w => w.head), // M F1 S
+      best.map(appendToLastFoot(s, "'")).filter(w => w && w.head) as Word[], // M F2
+    ]
+      .map(cands => evaluate(cands, hierarchy))
+      .filter(w => !!w)
+    // console.log(prev.map(formatWord))
   }
   return (
     evaluate(
-      prev.filter(w => w.head),
-      hierarchy,
+      best.filter(w => w.head),
+      hierarchy
     ) ?? empty()
   )
+}
+export function parseInterpretive(syllables: Syllable[], hierarchy: StressMark[]): Word {
+  let best = [empty()]
+  for (let s of syllables) {
+    best = [
+      // NoM is "for descriptions that lack a main stress", whereas M is for ones that have it.
+      // That means that
+      // (1) M needs to filter its output by having a main stress
+      // (2) No M needs to filter its output by not having a main stress
+      // (3) M F1 S and M F2 need to filter input for not having a main stress (if F2 would add a stress)
+      s.stress ? [] : best.map(pw => append(pw, s)).filter(w => !w.head), // NoM NoF
+      s.stress ? [] : best.map(pw => append(pw, { s1: s })).filter(w => !w.head), // NoM F1 NoS
+      s.stress === "`" ? best.map(pw => append(pw, { s1: s })).filter(w => !w.head) : [], // NoM F1 S
+      s.stress === "`" ? (best.map(appendToLastFoot(s, "`")).filter(w => w && !w.head) as Word[]) : [], // NoM F2
+      s.stress ? [] : best.map(pw => append(pw, s)).filter(w => w.head), // M NoF
+      s.stress ? [] : best.map(pw => append(pw, { s1: s })).filter(w => w.head), // M F1 NoS
+      best
+        .map(pw => {
+          let stress: Stress = pw.head ? "`" : "'"
+          return s.stress === stress ? append(pw, { s1: s }) : undefined
+        })
+        .filter(w => w && w.head) as Word[], // M F1 S
+      best.map(appendToLastFootMatch(s, "'")).filter(w => w && w.head) as Word[], // M F2
+    ]
+      .map(cands => evaluate(cands, hierarchy))
+      .filter(w => !!w)
+    // console.log(prev.map(formatWord))
+  }
+  return (
+    evaluate(
+      best.filter(w => w.head),
+      hierarchy
+    ) ?? empty()
+  )
+}
+function appendToLastFootMatch(syllable: Syllable, stress: "'" | "`"): (word: Word) => Word | undefined {
+  return word => {
+    if (word.feet.length === 0) {
+      return undefined
+    }
+    let last = word.feet.at(-1)
+    if (!(last && isFoot(last) && !last.s2)) {
+      return undefined
+    }
+    let targetStress: Stress = last.s1.stress ? "" : word.head ? "`" : stress
+    if (syllable.stress !== targetStress) {
+      return undefined
+    }
+    let feet = word.feet.slice(0, -1)
+    feet.push({ ...last, s2: syllable })
+    return new Word(feet)
+  }
 }
 function appendToLastFoot(syllable: Syllable, stress: "'" | "`"): (word: Word) => Word | undefined {
   return word => {

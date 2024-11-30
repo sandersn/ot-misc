@@ -13,9 +13,9 @@ export function qw(s: string): string[] {
   return s.split(/\s+/)
 }
 
-export function stressUnparsed(stress: string): Syllable[] {
+export function meterUnparsed(stress: string): Syllable[] {
   assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on unparsed stress patterns")
-  return stressPattern(stress) as Syllable[]
+  return meterPattern(stress) as Syllable[]
 }
 /** ('..)
  * . light
@@ -25,7 +25,7 @@ export function stressUnparsed(stress: string): Syllable[] {
  * ( start of foot
  * ) end of foot
  */
-export function stressPattern(stress: string): (Syllable | Foot)[] {
+export function meterPattern(stress: string): (Syllable | Foot)[] {
   let nextStress: Stress = ""
   let foot: Syllable[] | undefined
   let syllables: (Syllable | Foot)[] = []

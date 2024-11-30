@@ -1,4 +1,4 @@
-import { qw, testall, stressUnparsed } from "./util/testing.ts"
+import { qw, testall, meterUnparsed } from "./util/testing.ts"
 import { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
 import {
   absToRelative,
@@ -261,5 +261,5 @@ testall("General OT tests", {
   nonFinalEvalThreeInitialSecondary: markEval(mark.nonFinal, "'..`.", 1),
 })
 function markEval(constraint: StressMark, overt: string, count: number): () => void {
-  return () => equal(constraint.evaluate(parseTrochaic(stressUnparsed(overt))), count)
+  return () => equal(constraint.evaluate(parseTrochaic(meterUnparsed(overt))), count)
 }

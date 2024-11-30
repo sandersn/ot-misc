@@ -12,7 +12,7 @@ export type Mark = {
 export type Constraint = Faith | Mark
 export type Stratum = Constraint[]
 export type Strata = Stratum[]
-/// stress types ///
+/// meter types ///
 /**
  * ' = primary
  * ` = secondary
