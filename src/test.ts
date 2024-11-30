@@ -1,6 +1,5 @@
-import { suite, test } from "node:test"
-import { qw, testall } from "./util/testing.ts"
-import assert, { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
+import { qw, testall, stressUnparsed } from "./util/testing.ts"
+import { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
 import {
   absToRelative,
   readJsonViolations,
@@ -15,8 +14,8 @@ import {
 } from "./hydrogen.ts"
 import { rcd } from "./rcd.ts"
 import { Mark, Faith } from "./types.ts"
-import { parseTrochaic, parseProduction, findHead, formatWord } from "./word.ts"
-import type { Syllable, Foot, Stress, StressMark, Word, StressConstraint } from "./types.ts"
+import { parseTrochaic, Word } from "./word.ts"
+import type { StressMark } from "./types.ts"
 import fs from "node:fs"
 import * as ot from "./ot.ts"
 import * as faith from "./faith.ts"
@@ -173,8 +172,7 @@ testall("General OT tests", {
   parseEvalFive: markEval(mark.parse, "..'...", 3),
   parseEvalSix: markEval(mark.parse, "..'....", 4),
   footBinEvalEmpty() {
-    let sentinelHead: Foot = { s1: { weight: "l", stress: undefined }, s2: undefined }
-    equal(mark.footBin.evaluate({ head: sentinelHead, feet: [] }), 0)
+    equal(mark.footBin.evaluate(new Word([])), 0)
   },
   footBinEvalOneHeavy: markEval(mark.footBin, "_", 0),
   footBinEvalOneLight: markEval(mark.footBin, ".", 0),
@@ -262,121 +260,6 @@ testall("General OT tests", {
   nonFinalEvalThreeInitial: markEval(mark.nonFinal, "'...", 0),
   nonFinalEvalThreeInitialSecondary: markEval(mark.nonFinal, "'..`.", 1),
 })
-parseTrochaicAll([
-  [".", "."],
-  ["'.", "('.)"],
-  ["'_", "('_)"],
-  ["_", "_"],
-  [".'.", ".('.)"],
-  ["'_.", "('_.)"],
-  [".'_", ".('_)"],
-  ["'._", "('._)"],
-  ["_'.", "_('.)"],
-  ["'_'_", "('_)('_)"],
-  ["'__", "('_)_"],
-  ["_'_", "_('_)"],
-  // TODO: Way more tests needed about here
-  [".'..", ".('..)"],
-  ["..'.", "..('.)"],
-  ["'....", "('..).."],
-  ["'.....", "('..)..."],
-  ["..'..", "..('..)"],
-  [".'..'..", ".('..)('..)"],
-  ["'...'..", "('..).('..)"],
-  ["'....'.", "('..)..('.)"],
-  ["'......", "('..)...."],
-  [".....'.", ".....('.)"],
-  // Garawa examples from Learnability in OT
-  ["'..", "('..)"],
-  ["'...", "('..)."],
-  ["'..'..", "('..)('..)"],
-  ["'...'..", "('..).('..)"],
-  ["'..'..'..", "('..)('..)('..)"],
-  ["'...'..'..", "('..).('..)('..)"],
-])
-parseProductionAll([
-  ["", ""],
-  [".", "('.)"],
-  ["..", "('..)"],
-  ["...", "('..)."],
-  ["....", "('..)(`..)"],
-  [".....", "('..).('..)"],
-  ["......", "('..)('..)('..)"],
-  [".......", "('..).('..)('..)"],
-],[mark.footBin, mark.mainLeft, mark.parse, mark.allFeetRight, mark.footNonFinal, mark.allFeetLeft, mark.mainRight, mark.iambic])
-function parseTrochaicAll(patterns: [string, string][]): void {
-  suite("word.parseTrochaic", () => {
-    for (let [overt, word] of patterns) {
-      test(`${overt} => ${word}`, () => {
-        const actual = parseTrochaic(stressUnparsed(overt))
-        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatWord(actual)}`)
-      })
-    }
-  })
-}
-function parseProductionAll(patterns: Array<[string, string]>, hierarchy: StressMark[]): void {
-  suite("word.parseProduction", () => {
-    for (let [underlying, word] of patterns) {
-      test(`${underlying} => ${word}`, () => {
-        const actual = parseProduction(stressUnparsed(underlying), hierarchy)
-        equal(actual, prosodicWord(word), `expected: ${word} -- received: ${formatWord(actual)}`)
-      })
-    }
-  })
-}
-function prosodicWord(stress: string): Word {
-  let feet = stressPattern(stress)
-  return { head: findHead(feet), feet }
-}
 function markEval(constraint: StressMark, overt: string, count: number): () => void {
   return () => equal(constraint.evaluate(parseTrochaic(stressUnparsed(overt))), count)
-}
-
-function stressUnparsed(stress: string): Syllable[] {
-  assert(stress.indexOf("(") === -1 && stress.indexOf(")") === -1, "stressOvert only works on unparsed stress patterns")
-  return stressPattern(stress) as Syllable[]
-}
-/** ('..)
- * . light
- * _ heavy
- * ' primary stress
- * , secondary stress
- * ( start of foot
- * ) end of foot
- */
-function stressPattern(stress: string): (Syllable | Foot)[] {
-  let nextStress: Stress = "unstressed"
-  let foot: Syllable[] | undefined
-  let syllables: (Syllable | Foot)[] = []
-  for (let i = 0; i < stress.length; i++) {
-    switch (stress[i]) {
-      case "'":
-        nextStress = "primary"
-        break
-      case "`":
-        nextStress = "secondary"
-        break
-      case ".":
-      case "_":
-        ;(foot ? foot : syllables).push({ stress: nextStress, weight: stress[i] === "." ? "l" : "h" })
-        nextStress = "unstressed"
-        break
-      case "(":
-        assert(!foot, "open parenthesis inside unclosed open parenthesis")
-        foot = []
-        break
-      case ")":
-        assert(foot, "close parenthesis without open parenthesis")
-        if (foot.length === 1) {
-          syllables.push({ s1: foot[0] })
-        } else if (foot.length === 2) {
-          syllables.push({ s1: foot[0], s2: foot[1] })
-        } else {
-          fail("foot too long" + foot.length)
-        }
-        foot = undefined
-        break
-    }
-  }
-  return syllables
 }

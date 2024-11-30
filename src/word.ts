@@ -1,37 +1,69 @@
-import type { StressMark, Foot, Syllable, Word } from "./types.ts"
-export function empty(): Word {
-  return { head: undefined, feet: [] }
+import type { StressMark, Foot, Syllable } from "./types.ts"
+/**
+ * Additional rules not enforced by this type:
+ * - Unfooted syllables must be unstressed.
+ * - Each foot has exactly one head syllable, which is the only stressed one in that foot.
+ * - Head foot's head syllable must have primary stress; other feet's head syllables must have secondary.
+ * - All words must have a head.
+ */
+export class Word {
+  head: Foot | undefined
+  feet: (Foot | Syllable)[]
+  constructor(feet: (Foot | Syllable)[]) {
+    this.feet = feet
+    this.head = findHead(feet)
+  }
+  syllables() {
+    let ss = []
+    for (const foot of this.feet) {
+      if (isSyllable(foot)) {
+        ss.push(foot)
+      } else {
+        ss.push(foot.s1)
+        if (foot.s2) {
+          ss.push(foot.s2)
+        }
+      }
+    }
+    return ss
+  }
+  length() {
+    let len = 0
+    for (const foot of this.feet) {
+      if (isSyllable(foot)) {
+        len++
+      } else {
+        len += foot.s2 ? 2 : 1
+      }
+    }
+    return len
+  }
+}
+function append(word: Word, foot: Foot | Syllable): Word {
+  return new Word([...word.feet, foot])
+}
+function appendToLastFoot(foot: Syllable, stress: "primary" | "secondary"): (word: Word) => Word | undefined {
+  return word => {
+    if (word.feet.length === 0) {
+      return undefined
+    }
+    let last = word.feet.at(-1)
+    if (!(last && isFoot(last) && !last.s2)) {
+      return undefined
+    }
+    let feet = word.feet.slice(0, -1)
+    feet.push({ ...last, s2: last.s1.stress === "unstressed" ? { ...foot, stress } : foot })
+    return new Word(feet)
+  }
+}
+function empty(): Word {
+  return new Word([])
 }
 export function isFoot(s: Foot | Syllable): s is Foot {
   return "s1" in s
 }
 export function isSyllable(s: Foot | Syllable): s is Syllable {
   return "weight" in s
-}
-export function syllables(word: Word) {
-  let ss = []
-  for (const foot of word.feet) {
-    if (isSyllable(foot)) {
-      ss.push(foot)
-    } else {
-      ss.push(foot.s1)
-      if (foot.s2) {
-        ss.push(foot.s2)
-      }
-    }
-  }
-  return ss
-}
-export function length(word: Word) {
-  let len = 0
-  for (const foot of word.feet) {
-    if (isSyllable(foot)) {
-      len++
-    } else {
-      len += foot.s2 ? 2 : 1
-    }
-  }
-  return len
 }
 export function formatWord(pw: Word): string {
   return pw.feet
@@ -108,31 +140,13 @@ export function parseProduction(underlying: Syllable[], hierarchy: StressMark[])
   let next = prev.filter(w => w.head)
   return evaluate(next.length ? next : prev, hierarchy) ?? empty()
 }
-function append(word: Word, foot: Foot | Syllable): Word {
-  let feet = [...word.feet, foot]
-  return { head: findHead(feet), feet }
-}
-function appendToLastFoot(foot: Syllable, stress: "primary" | "secondary"): (word: Word) => Word | undefined {
-  return word => {
-    if (word.feet.length === 0) {
-      return undefined
-    }
-    let last = word.feet.at(-1)
-    if (!(last && isFoot(last) && !last.s2)) {
-      return undefined
-    }
-    let feet = word.feet.slice(0, -1)
-    feet.push({ ...last, s2: last.s1.stress === "unstressed" ? { ...foot, stress } : foot })
-    return { head: findHead(feet), feet }
-  }
-}
 /**
  * NOTE: Empty strings return an undefined head.
  * NOTE: This isn't generally correct, but it fits the Garawa example
  */
 export function parseTrochaic(overt: Syllable[]): Word {
   if (overt.length === 0) {
-    return { head: undefined, feet: [] }
+    return new Word([])
   }
   let feet: (Foot | Syllable)[] = []
   let prev: Syllable | undefined
@@ -172,7 +186,7 @@ export function parseTrochaic(overt: Syllable[]): Word {
   if (prev) {
     feet.push(prev.stress === "unstressed" ? prev : { s1: prev })
   }
-  return { head: findHead(feet), feet }
+  return new Word(feet)
 }
 export function findHead(feet: Array<Foot | Syllable>): Foot | undefined {
   return feet.find(f => isFoot(f) && (f.s1.stress === "primary" || f.s2?.stress === "primary")) as Foot

@@ -1,3 +1,4 @@
+import type { Word } from './word.ts'
 export type Faith = {
   kind: "faith"
   name: string
@@ -25,17 +26,6 @@ export type Syllable = {
 export type Foot = {
   s1: Syllable
   s2?: Syllable
-}
-/**
- * Additional rules not enforced by this type:
- * - Unfooted syllables must be unstressed.
- * - Each foot has exactly one head syllable, which is the only stressed one in that foot.
- * - Head foot's head syllable must have primary stress; other feet's head syllables must have secondary.
- * - All words must have a head.
- */
-export type Word = {
-  head: Foot | undefined
-  feet: (Foot | Syllable)[]
 }
 // TODO: Unify these with normal faith/mark once I have a good representation for each
 export type StressFaith = {

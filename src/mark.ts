@@ -1,7 +1,7 @@
 import * as unifeat from "./unifeat.ts"
-import { isFoot, isSyllable, syllables, length } from "./word.ts"
+import { Word, isFoot, isSyllable } from "./word.ts"
 import { Mark } from "./types.ts"
-import type { Word, Phoneme, StressMark, Syllable, Foot } from "./types.ts"
+import type { Phoneme, StressMark, Syllable, Foot } from "./types.ts"
 import { zipWith, count, sequence } from "./util/array.ts"
 
 unifeat.phonemes
@@ -132,7 +132,7 @@ export let wsp: StressMark = {
   kind: "mark",
   name: "WSP",
   evaluate(overt) {
-    return count(syllables(overt), s => s.weight === "h" && s.stress === "unstressed")
+    return count(overt.syllables(), s => s.weight === "h" && s.stress === "unstressed")
   },
 }
 export let parse: StressMark = {
@@ -210,7 +210,7 @@ function isHeadFoot(sf: Syllable | Foot): sf is Foot {
 }
 function alignFeetToWord(direction: "l" | "r", word: Word, predicate: (sf: Syllable | Foot) => boolean): number {
   let i = 0
-  let len = length(word)
+  let len = word.length()
   let totalMisalignment = 0
   for (let foot of word.feet) {
     if (direction === "l") {
