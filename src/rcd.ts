@@ -45,10 +45,13 @@ export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] 
     if (interp.equal(prod)) {
       return hierarchy
     }
-    let row = markToERC(hierarchy.map(h => h.evaluate(prod)), hierarchy.map(h => h.evaluate(interp)))
-    let i = row.indexOf('w')
+    let row = markToERC(
+      hierarchy.map(h => h.evaluate(prod)),
+      hierarchy.map(h => h.evaluate(interp)),
+    )
+    let i = row.indexOf("w")
     assert(i >= 0)
-    let [losers, ok] = partition(zip(hierarchy.slice(0,i), row.slice(0,i)), ([h,erc]) => erc === "l")
-    hierarchy = [...ok.map(([h,_]) => h), ...hierarchy.slice(i), ...losers.map(([h,_]) => h)]
+    let [losers, ok] = partition(zip(hierarchy.slice(0, i), row.slice(0, i)), ([h, erc]) => erc === "l")
+    hierarchy = [...ok.map(([h, _]) => h), ...hierarchy.slice(i), ...losers.map(([h, _]) => h)]
   }
 }

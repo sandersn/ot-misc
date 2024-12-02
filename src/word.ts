@@ -42,19 +42,23 @@ export class Word {
     return formatWord(this)
   }
   equal(other: Word): boolean {
-    return this.head === other.head && this.feet.length === other.feet.length && this.feet.every((f, i) => equalFoot(f, other.feet[i]))
+    return (
+      this.head === other.head &&
+      this.feet.length === other.feet.length &&
+      this.feet.every((f, i) => equalFoot(f, other.feet[i]))
+    )
   }
 }
 function equalFoot(f1: Foot | Syllable, f2: Foot | Syllable): boolean {
-    if (isFoot(f1) && isFoot(f2)) {
-        return equalSyllable(f1.s1, f2.s1) && (f1.s2 && f2.s2 ? equalSyllable(f1.s2!, f2.s2!) : (!!f1.s2 === !!f2.s2))
-    } else if (isSyllable(f1) && isSyllable(f2)) {
-        return equalSyllable(f1, f2)
-    }
-    return false
+  if (isFoot(f1) && isFoot(f2)) {
+    return equalSyllable(f1.s1, f2.s1) && (f1.s2 && f2.s2 ? equalSyllable(f1.s2!, f2.s2!) : !!f1.s2 === !!f2.s2)
+  } else if (isSyllable(f1) && isSyllable(f2)) {
+    return equalSyllable(f1, f2)
+  }
+  return false
 }
 function equalSyllable(s1: Syllable, s2: Syllable): boolean {
-    return s1.stress === s2.stress && s1.weight === s2.weight
+  return s1.stress === s2.stress && s1.weight === s2.weight
 }
 function findHead(feet: Array<Foot | Syllable>): Foot | undefined {
   return feet.find(f => isFoot(f) && (f.s1.stress === "'" || f.s2?.stress === "'")) as Foot
@@ -129,7 +133,7 @@ export function parseProduction(syllables: Syllable[], hierarchy: StressMark[]):
   return (
     evaluate(
       best.filter(w => w.head),
-      hierarchy
+      hierarchy,
     ) ?? empty()
   )
 }
@@ -163,7 +167,7 @@ export function parseInterpretive(syllables: Syllable[], hierarchy: StressMark[]
   return (
     evaluate(
       best.filter(w => w.head),
-      hierarchy
+      hierarchy,
     ) ?? empty()
   )
 }
@@ -204,23 +208,23 @@ function appendToLastFoot(syllable: Syllable, stress: "'" | "`"): (word: Word) =
  * This form only works on stress since that's what I have working. It's close to trivial.
  */
 export function underlyingForm(w: Word): Syllable[] {
-    // TODO: Also need to strip stress too
-    let syllables: Syllable[] = []
-    for (let foot of w.feet) {
-      if (isSyllable(foot)) {
-        push(foot)
-      } else {
-        push(foot.s1)
-        if (foot.s2) {
-          push(foot.s2)
-        }
+  // TODO: Also need to strip stress too
+  let syllables: Syllable[] = []
+  for (let foot of w.feet) {
+    if (isSyllable(foot)) {
+      push(foot)
+    } else {
+      push(foot.s1)
+      if (foot.s2) {
+        push(foot.s2)
       }
     }
-    return syllables
+  }
+  return syllables
 
-    function push(s: Syllable) {
-        syllables.push({ ...s, stress: "" })
-    }
+  function push(s: Syllable) {
+    syllables.push({ ...s, stress: "" })
+  }
 }
 /**
  * NOTE: Empty strings return an undefined head.

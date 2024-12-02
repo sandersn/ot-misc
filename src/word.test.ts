@@ -47,7 +47,7 @@ parseProductionAll(
     ["......", "('..)(`..)(`..)"],
     [".......", "('..).(`..)(`..)"],
   ],
-  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
+  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
 )
 parseInterpretiveAll(
   [
@@ -61,17 +61,17 @@ parseInterpretiveAll(
     ["'...`..`..", "('..).(`..)(`..)"],
     ["._'..", ".(_'.)."],
   ],
-  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
+  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
 )
 underlyingFormAll([
-    ["", ""],
-    [".", "."],
-    ["('.)", "."],
-    ["..", ".."],
-    ["('..)", ".."],
-    ["('..).", "..."],
-    ["('..)(`.)", "..."],
-    ["('..)(`_)", ".._"],
+  ["", ""],
+  [".", "."],
+  ["('.)", "."],
+  ["..", ".."],
+  ["('..)", ".."],
+  ["('..).", "..."],
+  ["('..)(`.)", "..."],
+  ["('..)(`_)", ".._"],
 ])
 function parseTrochaicAll(patterns: [string, string][]): void {
   suite("word.parseTrochaic", () => {

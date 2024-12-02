@@ -13,7 +13,20 @@ import {
   noVoiceobs,
   nopvmvpv,
 } from "./hydrogen.ts"
-import { footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic, wsp, nonFinal, wordFootLeft, wordFootRight } from "./mark.ts"
+import {
+  footBin,
+  mainLeft,
+  parse,
+  allFeetRight,
+  footNonFinal,
+  allFeetLeft,
+  mainRight,
+  iambic,
+  wsp,
+  nonFinal,
+  wordFootLeft,
+  wordFootRight,
+} from "./mark.ts"
 testall("RCD", {
   rcdBasic() {
     equal(rcd(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))), [
@@ -22,6 +35,22 @@ testall("RCD", {
     ])
   },
   ripcdLearnabilityInOTChapter4() {
-    equal(ripcd(meterUnparsed("...'.."), [allFeetLeft, allFeetRight,iambic,mainRight,footNonFinal, footBin, mainLeft, parse, wsp, nonFinal, wordFootLeft, wordFootRight]), [])
-  }
+    equal(
+      ripcd(meterUnparsed("...'.."), [
+        allFeetLeft,
+        allFeetRight,
+        iambic,
+        mainRight,
+        footNonFinal,
+        footBin,
+        mainLeft,
+        parse,
+        wsp,
+        nonFinal,
+        wordFootLeft,
+        wordFootRight,
+      ]),
+      [],
+    )
+  },
 })
