@@ -62,8 +62,8 @@ export function StressMark(name: string, evaluate: (overt: Word) => number): Str
 }
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
 /**
- * L = lose
- * W = win
+ * l = lose
+ * w = win
  * = = equal, tied
  */
 export type Erc = "l" | "w" | "="

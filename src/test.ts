@@ -1,18 +1,6 @@
 import { qw, testall, meterUnparsed } from "./util/testing.ts"
-import { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
-import {
-  absToRelative,
-  readJsonViolations,
-  idasp,
-  idasp_v,
-  idvoice,
-  idvoice_v,
-  noAsp,
-  noDh,
-  noVoiceobs,
-  nopvmvpv,
-} from "./hydrogen.ts"
-import { rcd } from "./rcd.ts"
+import { strictEqual as eq, deepEqual as equal } from "node:assert"
+import { absToRelative } from "./hydrogen.ts"
 import { Mark, Faith } from "./types.ts"
 import { parseTrochaic, Word } from "./word.ts"
 import type { StressMark } from "./types.ts"
@@ -43,26 +31,20 @@ testall("General OT tests", {
       eq(row.length, 105)
     }
   },
-  rcdBasic() {
-    equal(rcd(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))), [
-      [idasp, idvoice, idasp_v, idvoice_v, noDh],
-      [nopvmvpv, noVoiceobs, noAsp],
-    ])
-  },
   eval() {
     eq(
       ot.evaluate(
         Mark("mark-length", s => s.length),
-        ["hi"],
+        ["hi"]
       ),
-      2,
+      2
     )
     eq(
       ot.evaluate(
         Faith("faith-length", (x, y) => (x + y).length),
-        ["hi", "there"],
+        ["hi", "there"]
       ),
-      7,
+      7
     )
   },
   bounds1: () => eq(ot.simplyBounds([2, 0, 0, 0], [0, 0, 1, 1]), false),

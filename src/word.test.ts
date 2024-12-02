@@ -1,6 +1,6 @@
 import { suite, test } from "node:test"
 import { meterPattern, meterUnparsed } from "./util/testing.ts"
-import { Word, parseTrochaic, parseProduction, parseInterpretive } from "./word.ts"
+import { Word, parseTrochaic, parseProduction, parseInterpretive, underlyingForm } from "./word.ts"
 import { footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic } from "./mark.ts"
 import { deepEqual as equal } from "node:assert"
 import type { StressMark } from "./types.ts"
@@ -39,7 +39,7 @@ parseTrochaicAll([
 parseProductionAll(
   [
     ["", ""],
-    [".", "('.)`"],
+    [".", "('.)"],
     ["..", "('..)"],
     ["...", "('..)."],
     ["....", "('..)(`..)"],
@@ -50,9 +50,29 @@ parseProductionAll(
   [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
 )
 parseInterpretiveAll(
-  [["._'..", ".(_'.)."]],
+  [
+    ["", ""],
+    ["'.", "('.)"],
+    ["'..", "('..)"],
+    ["'...", "('..)."],
+    ["'..`..", "('..)(`..)"],
+    ["'...`..", "('..).(`..)"],
+    ["'..`..`..", "('..)(`..)(`..)"],
+    ["'...`..`..", "('..).(`..)(`..)"],
+    ["._'..", ".(_'.)."],
+  ],
   [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
 )
+underlyingFormAll([
+    ["", ""],
+    [".", "."],
+    ["('.)", "."],
+    ["..", ".."],
+    ["('..)", ".."],
+    ["('..).", "..."],
+    ["('..)(`.)", "..."],
+    ["('..)(`_)", ".._"],
+])
 function parseTrochaicAll(patterns: [string, string][]): void {
   suite("word.parseTrochaic", () => {
     for (let [overt, word] of patterns) {
@@ -79,6 +99,18 @@ function parseInterpretiveAll(patterns: Array<[string, string]>, hierarchy: Stre
       test(`${underlying} => ${word}`, () => {
         const actual = parseInterpretive(meterUnparsed(underlying), hierarchy)
         equal(actual, prosodicWord(word), `expected: ${word} -- received: ${actual}`)
+      })
+    }
+  })
+}
+function underlyingFormAll(patterns: [string, string][]): void {
+  suite("word.underlyingForm", () => {
+    for (let [parsed, underlying] of patterns) {
+      test(`${parsed} => ${underlying}`, () => {
+        let word = new Word(meterPattern(parsed))
+        let actual = new Word(underlyingForm(word))
+        let expected = new Word(meterPattern(underlying))
+        equal(actual, expected, `expected: ${expected} -- received: ${actual}`)
       })
     }
   })

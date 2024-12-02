@@ -1,5 +1,8 @@
-import { partition, pickIndices } from "./util/array.ts"
-import { Column, type Strata } from "./types.ts"
+import { zip, partition, pickIndices } from "./util/array.ts"
+import type { Column, Syllable, Strata, StressMark } from "./types.ts"
+import { parseInterpretive, parseProduction, underlyingForm } from "./word.ts"
+import { markToERC } from "./ot.ts"
+import assert from "node:assert"
 /**
  * A candidate is a loser when its promoted columns have a winning mark in them.
  * If the promoted columns are all tied, then the candidate is not a loser, and
@@ -32,5 +35,20 @@ export function rcd(columns: Column[]): Strata {
       acc.push(promote.map(c => c.constraint))
       columns = removeLosersFromDemote(demote, promote)
     }
+  }
+}
+export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] {
+  while (true) {
+    let interp = parseInterpretive(overt, hierarchy)
+    let uf = underlyingForm(interp)
+    let prod = parseProduction(uf, hierarchy)
+    if (interp.equal(prod)) {
+      return hierarchy
+    }
+    let row = markToERC(hierarchy.map(h => h.evaluate(prod)), hierarchy.map(h => h.evaluate(interp)))
+    let i = row.indexOf('w')
+    assert(i >= 0)
+    let [losers, ok] = partition(zip(hierarchy.slice(0,i), row.slice(0,i)), ([h,erc]) => erc === "l")
+    hierarchy = [...ok.map(([h,_]) => h), ...hierarchy.slice(i), ...losers.map(([h,_]) => h)]
   }
 }

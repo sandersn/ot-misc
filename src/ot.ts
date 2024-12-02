@@ -15,7 +15,7 @@ export function evaluate(constraint: Constraint, args: string[]): number {
       return constraint.eval(args.at(-1)!)
   }
 }
-function markToERC(candidates: number[], bounds: number[]): Erc[] {
+export function markToERC(candidates: number[], bounds: number[]): Erc[] {
   return candidates.map((c, i) => (c < bounds[i] ? "l" : c > bounds[i] ? "w" : "="))
 }
 /**

@@ -59,5 +59,6 @@ export function meterPattern(stress: string): (Syllable | Foot)[] {
         break
     }
   }
+  assert(!nextStress, "trailing stress mark")
   return syllables
 }
