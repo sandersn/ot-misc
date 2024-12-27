@@ -43,7 +43,7 @@ export class Word {
   }
   equal(other: Word): boolean {
     return (
-      this.head === other.head &&
+      (this.head === other.head || equalFoot(this.head!, other.head!)) &&
       this.feet.length === other.feet.length &&
       this.feet.every((f, i) => equalFoot(f, other.feet[i]))
     )

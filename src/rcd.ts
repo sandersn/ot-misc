@@ -37,6 +37,7 @@ export function rcd(columns: Column[]): Strata {
     }
   }
 }
+// TODO: this whole things should use strata (Array<Set<Constraint>>) instead of just Constraint[]
 export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] {
   while (true) {
     let interp = parseInterpretive(overt, hierarchy)
@@ -52,6 +53,6 @@ export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] 
     let i = row.indexOf("w")
     assert(i >= 0)
     let [losers, ok] = partition(zip(hierarchy.slice(0, i), row.slice(0, i)), ([h, erc]) => erc === "l")
-    hierarchy = [...ok.map(([h, _]) => h), ...hierarchy.slice(i), ...losers.map(([h, _]) => h)]
+    hierarchy = [...ok.map(([h, _]) => h), hierarchy[i], ...losers.map(([h, _]) => h), ...hierarchy.slice(i + 1)]
   }
 }

@@ -118,3 +118,13 @@ Another test port of work I had done.
 - features.ml - map IPA to feature structure
 - lev.ml - levenshtein distance
 - ot.ml - test the above code
+
+## 2024 - Koka
+
+Another test port of work I had done. I translated a good chunk of the Python code. Ultimately I decided that Koka was nice but the library, language service and compiler were not supported enough to make development easy.
+
+## 2024 - Typescript
+
+This port focusses on learning, although that required porting nearly all the previous code, just not the factorial typology work.
+
+It uses node's new test framework, so it requires node >=23 to run tests.

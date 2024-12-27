@@ -49,8 +49,21 @@ testall("RCD", {
         nonFinal,
         wordFootLeft,
         wordFootRight,
-      ]),
-      [],
+      ]).map(h => h.name),
+      [
+        "AllFeetRight",
+        "AllFeetLeft",
+        "MainRight",
+        "FootNonFinal",
+        "Iambic",
+        "FootBin",
+        "MainLeft",
+        "Parse",
+        "WSP",
+        "NonFinal",
+        "WordFootLeft",
+        "WordFootRight",
+      ],
     )
   },
 })
