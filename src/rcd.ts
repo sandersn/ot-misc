@@ -37,9 +37,9 @@ export function rcd(columns: Column[]): Strata {
     }
   }
 }
-// TODO: this whole things should use strata (Array<Set<Constraint>>) instead of just Constraint[]
+// TODO: this whole thing should use strata (Array<Set<Constraint>>) instead of just Constraint[]
 export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] {
-  while (true) {
+  for (let rounds = 0; rounds < 10; rounds++) {
     let interp = parseInterpretive(overt, hierarchy)
     let uf = underlyingForm(interp)
     let prod = parseProduction(uf, hierarchy)
@@ -48,11 +48,17 @@ export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] 
     }
     let row = markToERC(
       hierarchy.map(h => h.evaluate(prod)),
-      hierarchy.map(h => h.evaluate(interp)),
+      hierarchy.map(h => h.evaluate(interp))
     )
-    let i = row.indexOf("w")
-    assert(i >= 0)
-    let [losers, ok] = partition(zip(hierarchy.slice(0, i), row.slice(0, i)), ([h, erc]) => erc === "l")
-    hierarchy = [...ok.map(([h, _]) => h), hierarchy[i], ...losers.map(([h, _]) => h), ...hierarchy.slice(i + 1)]
+    let firstWinner = row.indexOf("w")
+    let demotees = []
+    let neutrals = []
+    assert(firstWinner >= 0)
+    for (let i = 0; i < firstWinner; i++) {
+      if (row[i] === "l") demotees.push(hierarchy[i])
+      else neutrals.push(hierarchy[i])
+    }
+    hierarchy = [...neutrals, hierarchy[firstWinner], ...demotees, ...hierarchy.slice(firstWinner + 1)]
   }
+  throw new Error("RIP/CD did not converge in 10 rounds.")
 }

@@ -34,7 +34,7 @@ testall("RCD", {
       [nopvmvpv, noVoiceobs, noAsp],
     ])
   },
-  ripcdLearnabilityInOTChapter4() {
+  ripcdLearnabilityInOTChapter4Success() {
     equal(
       ripcd(meterUnparsed("...'.."), [
         allFeetLeft,
@@ -63,7 +63,47 @@ testall("RCD", {
         "NonFinal",
         "WordFootLeft",
         "WordFootRight",
-      ],
+      ]
+    )
+  },
+  ripcdCh4Fail1() {
+    equal(
+      ripcd(meterUnparsed(".'..`.."), [
+        parse,
+        mainLeft,
+        allFeetRight,
+        iambic,
+        footNonFinal,
+        allFeetLeft,
+        mainRight,
+        footBin,
+        wsp,
+        nonFinal,
+        wordFootLeft,
+        wordFootRight,
+      ]).map(h => h.name),
+      [
+        "Parse",
+        "MainLeft",
+        "AllFeetRight",
+        "Iambic",
+        "FootNonFinal",
+        "AllFeetLeft",
+        "MainRight",
+        "FootBin",
+        "WSP",
+        "NonFinal",
+        "WordFootLeft",
+        "WordFootRight",
+      ]
+    )
+  },
+  ripcdCh4Fail2() {
+    equal(
+      ripcd(meterUnparsed(".'_.."), [wsp, footBin, mainLeft, footNonFinal, parse, wordFootRight, nonFinal]).map(
+        h => h.name
+      ),
+      ["WSP", "FootBin", "MainLeft", "FootNonFinal", "NonFinal", "Parse", "WordFootRight"]
     )
   },
 })
