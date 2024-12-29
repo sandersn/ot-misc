@@ -1,5 +1,5 @@
-import { zip, partition, pickIndices } from "./util/array.ts"
-import type { Column, Syllable, Strata, StressMark } from "./types.ts"
+import { partition, pickIndices } from "./util/array.ts"
+import type { Column, Syllable, Strata, StressMark, Erc } from "./types.ts"
 import { parseInterpretive, parseProduction, underlyingForm } from "./word.ts"
 import { markToERC } from "./ot.ts"
 import assert from "node:assert"
@@ -24,7 +24,7 @@ function removeLosersFromDemote(demote: Column[], promote: Column[]): Column[] {
   }
   return demote.map(c => ({ ...c, violations: pickIndices(c.violations, ties) }))
 }
-export function rcd(columns: Column[]): Strata {
+export function recursive(columns: Column[]): Strata {
   let acc: Strata = []
   while (true) {
     let [demote, promote] = partition(columns, c => c.violations.some(v => v === "l"))
@@ -38,7 +38,7 @@ export function rcd(columns: Column[]): Strata {
   }
 }
 // TODO: this whole thing should use strata (Array<Set<Constraint>>) instead of just Constraint[]
-export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] {
+export function errorDriven(overt: Syllable[], hierarchy: StressMark[]): StressMark[] {
   for (let rounds = 0; rounds < 10; rounds++) {
     let interp = parseInterpretive(overt, hierarchy)
     let uf = underlyingForm(interp)
@@ -50,15 +50,18 @@ export function ripcd(overt: Syllable[], hierarchy: StressMark[]): StressMark[] 
       hierarchy.map(h => h.evaluate(prod)),
       hierarchy.map(h => h.evaluate(interp))
     )
-    let firstWinner = row.indexOf("w")
-    let demotees = []
-    let neutrals = []
-    assert(firstWinner >= 0)
-    for (let i = 0; i < firstWinner; i++) {
-      if (row[i] === "l") demotees.push(hierarchy[i])
-      else neutrals.push(hierarchy[i])
-    }
-    hierarchy = [...neutrals, hierarchy[firstWinner], ...demotees, ...hierarchy.slice(firstWinner + 1)]
+    hierarchy = demotion(row, hierarchy)
   }
-  throw new Error("RIP/CD did not converge in 10 rounds.")
+  throw new Error("Error-driven constraint demotion did not converge in 10 rounds.")
+}
+function demotion(row: Erc[], hierarchy: StressMark[]) {
+  let firstWinner = row.indexOf("w")
+  let demotees = []
+  let neutrals = []
+  assert(firstWinner >= 0)
+  for (let i = 0; i < firstWinner; i++) {
+    if (row[i] === "l") demotees.push(hierarchy[i])
+    else neutrals.push(hierarchy[i])
+  }
+  return [...neutrals, hierarchy[firstWinner], ...demotees, ...hierarchy.slice(firstWinner + 1)]
 }

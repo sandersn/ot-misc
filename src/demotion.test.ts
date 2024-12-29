@@ -1,6 +1,6 @@
 import { testall, meterUnparsed } from "./util/testing.ts"
 import { strictEqual as eq, deepEqual as equal } from "node:assert"
-import { rcd, ripcd } from "./rcd.ts"
+import * as demotion from "./demotion.ts"
 import fs from "node:fs"
 import {
   readJsonViolations,
@@ -27,29 +27,31 @@ import {
   wordFootLeft,
   wordFootRight,
 } from "./mark.ts"
-testall("RCD", {
+testall("Demotion", {
   rcdBasic() {
-    equal(rcd(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))), [
+    equal(demotion.recursive(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))), [
       [idasp, idvoice, idasp_v, idvoice_v, noDh],
       [nopvmvpv, noVoiceobs, noAsp],
     ])
   },
   ripcdLearnabilityInOTChapter4Success() {
     equal(
-      ripcd(meterUnparsed("...'.."), [
-        allFeetLeft,
-        allFeetRight,
-        iambic,
-        mainRight,
-        footNonFinal,
-        footBin,
-        mainLeft,
-        parse,
-        wsp,
-        nonFinal,
-        wordFootLeft,
-        wordFootRight,
-      ]).map(h => h.name),
+      demotion
+        .errorDriven(meterUnparsed("...'.."), [
+          allFeetLeft,
+          allFeetRight,
+          iambic,
+          mainRight,
+          footNonFinal,
+          footBin,
+          mainLeft,
+          parse,
+          wsp,
+          nonFinal,
+          wordFootLeft,
+          wordFootRight,
+        ])
+        .map(h => h.name),
       [
         "AllFeetRight",
         "AllFeetLeft",
@@ -68,20 +70,22 @@ testall("RCD", {
   },
   ripcdCh4Fail1() {
     equal(
-      ripcd(meterUnparsed(".'..`.."), [
-        parse,
-        mainLeft,
-        allFeetRight,
-        iambic,
-        footNonFinal,
-        allFeetLeft,
-        mainRight,
-        footBin,
-        wsp,
-        nonFinal,
-        wordFootLeft,
-        wordFootRight,
-      ]).map(h => h.name),
+      demotion
+        .errorDriven(meterUnparsed(".'..`.."), [
+          parse,
+          mainLeft,
+          allFeetRight,
+          iambic,
+          footNonFinal,
+          allFeetLeft,
+          mainRight,
+          footBin,
+          wsp,
+          nonFinal,
+          wordFootLeft,
+          wordFootRight,
+        ])
+        .map(h => h.name),
       [
         "Parse",
         "MainLeft",
@@ -100,9 +104,9 @@ testall("RCD", {
   },
   ripcdCh4Fail2() {
     equal(
-      ripcd(meterUnparsed(".'_.."), [wsp, footBin, mainLeft, footNonFinal, parse, wordFootRight, nonFinal]).map(
-        h => h.name
-      ),
+      demotion
+        .errorDriven(meterUnparsed(".'_.."), [wsp, footBin, mainLeft, footNonFinal, parse, wordFootRight, nonFinal])
+        .map(h => h.name),
       ["WSP", "FootBin", "MainLeft", "FootNonFinal", "NonFinal", "Parse", "WordFootRight"]
     )
   },
