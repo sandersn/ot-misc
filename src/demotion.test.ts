@@ -26,7 +26,7 @@ import {
   nonFinal,
   wordFootLeft,
   wordFootRight,
-} from "./mark.ts"
+} from "./constraint.ts"
 testall("Demotion", {
   rcdBasic() {
     equal(demotion.recursive(readJsonViolations(fs.readFileSync("ot_learning/pseudo-korean.json", "utf8"))), [

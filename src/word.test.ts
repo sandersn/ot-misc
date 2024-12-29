@@ -1,9 +1,11 @@
 import { suite, test } from "node:test"
 import { meterPattern, meterUnparsed } from "./util/testing.ts"
 import { Word, parseTrochaic, parseProduction, parseInterpretive, underlyingForm } from "./word.ts"
-import { footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic } from "./mark.ts"
+import { footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic } from "./constraint.ts"
 import { deepEqual as equal } from "node:assert"
 import type { StressMark } from "./types.ts"
+// NOTE: parseTrochaic isn't correct,
+// but it's good enough to produce syllable structure in testing.
 parseTrochaicAll([
   [".", "."],
   ["'.", "('.)"],
@@ -17,7 +19,6 @@ parseTrochaicAll([
   ["'_'_", "('_)('_)"],
   ["'__", "('_)_"],
   ["_'_", "_('_)"],
-  // TODO: Way more tests needed about here
   [".'..", ".('..)"],
   ["..'.", "..('.)"],
   ["'....", "('..).."],
@@ -47,7 +48,7 @@ parseProductionAll(
     ["......", "('..)(`..)(`..)"],
     [".......", "('..).(`..)(`..)"],
   ],
-  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
+  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
 )
 parseInterpretiveAll(
   [
@@ -61,7 +62,7 @@ parseInterpretiveAll(
     ["'...`..`..", "('..).(`..)(`..)"],
     ["._'..", ".(_'.)."],
   ],
-  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
+  [footBin, mainLeft, parse, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
 )
 underlyingFormAll([
   ["", ""],
