@@ -1,4 +1,4 @@
-import * as unifeat from "./unifeat.ts"
+import * as unifeat from "./phone.ts"
 import { Mark } from "./types.ts"
 import type { Phoneme } from "./types.ts"
 import { zipWith, count, sequence } from "./util/array.ts"

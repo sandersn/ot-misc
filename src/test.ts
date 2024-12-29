@@ -6,7 +6,7 @@ import fs from "node:fs"
 import * as ot from "./ot.ts"
 import * as faith from "./faith.ts"
 import * as mark from "./mark.ts"
-import { phonesToFeatures } from "./unifeat.ts"
+import { phonesToFeatures } from "./phone.ts"
 testall("General OT tests", {
   absToRelative() {
     // abs is without titles right now

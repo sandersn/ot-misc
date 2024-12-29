@@ -1,6 +1,6 @@
 import { qw, testall } from "./util/testing.ts"
 import { strictEqual as eq, deepEqual as equal, fail } from "node:assert"
-import { phonemes, phonesToFeatures } from "./unifeat.ts"
+import { phonemes, phonesToFeatures } from "./phone.ts"
 import * as lev from "./lev.ts"
 function* pairs(ss: string[]) {
   for (let s1 of ss) {
@@ -47,7 +47,7 @@ testall("Feature distance", {
         ["insert", [2, 3]],
         ["insert", [2, 4]],
         ["insert", [2, 5]],
-      ],
+      ]
     )
   },
   "optimal path is reflexive"() {
@@ -84,7 +84,7 @@ testall("Feature distance", {
         ["insert", [1, 3]],
         ["substitute", [1, 4]],
         ["insert", [2, 5]],
-      ],
+      ]
     )
   },
 })
