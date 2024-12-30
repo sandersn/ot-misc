@@ -16,7 +16,7 @@ import {
 import {
   footBin,
   mainLeft,
-  parse,
+  parseFoot,
   allFeetRight,
   footNonFinal,
   allFeetLeft,
@@ -45,7 +45,7 @@ testall("Demotion", {
           footNonFinal,
           footBin,
           mainLeft,
-          parse,
+          parseFoot,
           wsp,
           nonFinal,
           wordFootLeft,
@@ -72,7 +72,7 @@ testall("Demotion", {
     equal(
       demotion
         .errorDriven(meterUnparsed(".'..`.."), [
-          parse,
+          parseFoot,
           mainLeft,
           allFeetRight,
           iambic,
@@ -105,7 +105,7 @@ testall("Demotion", {
   ripcdCh4Fail2() {
     equal(
       demotion
-        .errorDriven(meterUnparsed(".'_.."), [wsp, footBin, mainLeft, footNonFinal, parse, wordFootRight, nonFinal])
+        .errorDriven(meterUnparsed(".'_.."), [wsp, footBin, mainLeft, footNonFinal, parseFoot, wordFootRight, nonFinal])
         .map(h => h.name),
       ["WSP", "FootBin", "MainLeft", "FootNonFinal", "NonFinal", "Parse", "WordFootRight"]
     )

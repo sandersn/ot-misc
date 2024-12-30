@@ -12,6 +12,13 @@ export type Mark = {
 export type Constraint = Faith | Mark
 export type Stratum = Constraint[]
 export type Strata = Stratum[]
+/// segment types ///
+export type Segment = {
+  // TODO: Eventually this should be a real phone
+  segment: 'c' | 'v'
+  // TODO: A boolean would be good enough for CVT example
+  input?: Segment | undefined
+}
 /// meter types ///
 /**
  * ' = primary
@@ -30,6 +37,9 @@ export type Weight = "." | "_"
 export type Syllable = {
   weight: Weight
   stress: Stress
+  onset: Segment | undefined
+  nucleus: Segment | undefined
+  coda: Segment | undefined
 }
 export type Foot = {
   s1: Syllable

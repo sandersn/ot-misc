@@ -1,4 +1,4 @@
-import type { StressMark, Foot, Syllable, Stress } from "./types.ts"
+import type { StressMark, Foot, Syllable, Segment, Stress } from "./types.ts"
 /**
  * Additional rules not enforced by this type:
  * - Unfooted syllables must be unstressed.
@@ -8,32 +8,45 @@ import type { StressMark, Foot, Syllable, Stress } from "./types.ts"
  */
 export class Word {
   head: Foot | undefined
-  feet: (Foot | Syllable)[]
-  constructor(feet: (Foot | Syllable)[]) {
-    this.feet = feet
-    this.head = findHead(feet)
+  contents: (Foot | Syllable | Segment)[]
+  constructor(contents: (Foot | Syllable | Segment)[]) {
+    this.contents = contents
+    this.head = findHead(this.feet())
+  }
+  // TODO: feet/syllables should probably be cached
+  feet() {
+    let ft = []
+    for (const x of this.contents) {
+      if (isFoot(x)) {
+        ft.push(x)
+      }
+    }
+    return ft
   }
   syllables() {
     let ss = []
-    for (const foot of this.feet) {
-      if (isSyllable(foot)) {
-        ss.push(foot)
-      } else {
-        ss.push(foot.s1)
-        if (foot.s2) {
-          ss.push(foot.s2)
+    for (const x of this.contents) {
+      if (isSyllable(x)) {
+        ss.push(x)
+      } else if (isFoot(x)) {
+        ss.push(x.s1)
+        if (x.s2) {
+          ss.push(x.s2)
         }
       }
     }
     return ss
   }
+  // TODO: This is really syllableLength (and if syllables is cached, might as well
+  // rely on that instead)
   length() {
     let len = 0
-    for (const foot of this.feet) {
-      if (isSyllable(foot)) {
+    for (const x of this.contents) {
+      if (isSegment(x)) {
+      } else if (isSyllable(x)) {
         len++
       } else {
-        len += foot.s2 ? 2 : 1
+        len += x.s2 ? 2 : 1
       }
     }
     return len
@@ -44,45 +57,66 @@ export class Word {
   equal(other: Word): boolean {
     return (
       (this.head === other.head || equalFoot(this.head!, other.head!)) &&
-      this.feet.length === other.feet.length &&
-      this.feet.every((f, i) => equalFoot(f, other.feet[i]))
+      this.contents.length === other.contents.length &&
+      this.contents.every((f, i) => equalFoot(f, other.contents[i]))
     )
   }
 }
-function equalFoot(f1: Foot | Syllable, f2: Foot | Syllable): boolean {
+function equalFoot(f1: Foot | Syllable | Segment, f2: Foot | Syllable | Segment): boolean {
   if (isFoot(f1) && isFoot(f2)) {
     return equalSyllable(f1.s1, f2.s1) && (f1.s2 && f2.s2 ? equalSyllable(f1.s2!, f2.s2!) : !!f1.s2 === !!f2.s2)
   } else if (isSyllable(f1) && isSyllable(f2)) {
     return equalSyllable(f1, f2)
+  } else if (isSegment(f1) && isSegment(f2)) {
+    return equalSegment(f1, f2)
   }
   return false
 }
 function equalSyllable(s1: Syllable, s2: Syllable): boolean {
   return s1.stress === s2.stress && s1.weight === s2.weight
 }
+function equalSegment(s1: Segment, s2: Segment): boolean {
+  return s1.segment === s2.segment && s1.input?.segment === s2.input?.segment
+}
 function findHead(feet: Array<Foot | Syllable>): Foot | undefined {
   return feet.find(f => isFoot(f) && (f.s1.stress === "'" || f.s2?.stress === "'")) as Foot
 }
 function append(word: Word, foot: Foot | Syllable): Word {
-  return new Word([...word.feet, foot])
+  return new Word([...word.contents, foot])
 }
 function empty(): Word {
   return new Word([])
 }
 function formatWord(pw: Word): string {
-  return pw.feet
-    .map(s => (isFoot(s) ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")" : formatSyllable(s)))
+  return pw.contents
+    .map(s =>
+      isFoot(s)
+        ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")"
+        : isSegment(s)
+        ? formatSegment(s)
+        : formatSyllable(s)
+    )
     .join("")
 }
+function formatSegment(s: Segment | undefined): string {
+  if (!s) return ""
+  if (s.segment === "c" && !s.input) return "t"
+  if (s.segment === "v" && !s.input) return "a"
+  return s.segment
+}
 function formatSyllable(s: Syllable): string {
-  return s.stress + s.weight
+  let segments = formatSegment(s.onset) + formatSegment(s.nucleus) + formatSegment(s.coda)
+  return s.stress + segments + s.weight
 }
 
-export function isFoot(s: Foot | Syllable): s is Foot {
+export function isFoot(s: Foot | Syllable | Segment): s is Foot {
   return "s1" in s
 }
-export function isSyllable(s: Foot | Syllable): s is Syllable {
+export function isSyllable(s: Foot | Syllable | Segment): s is Syllable {
   return "weight" in s
+}
+export function isSegment(s: Foot | Syllable | Segment): s is Segment {
+  return "segment" in s
 }
 
 /**
@@ -133,7 +167,7 @@ export function parseProduction(syllables: Syllable[], hierarchy: StressMark[]):
   return (
     evaluate(
       best.filter(w => w.head),
-      hierarchy,
+      hierarchy
     ) ?? empty()
   )
 }
@@ -167,16 +201,16 @@ export function parseInterpretive(syllables: Syllable[], hierarchy: StressMark[]
   return (
     evaluate(
       best.filter(w => w.head),
-      hierarchy,
+      hierarchy
     ) ?? empty()
   )
 }
 function appendToLastFootMatch(syllable: Syllable, stress: "'" | "`"): (word: Word) => Word | undefined {
   return word => {
-    if (word.feet.length === 0) {
+    if (word.contents.length === 0) {
       return undefined
     }
-    let last = word.feet.at(-1)
+    let last = word.contents.at(-1)
     if (!(last && isFoot(last) && !last.s2)) {
       return undefined
     }
@@ -184,39 +218,42 @@ function appendToLastFootMatch(syllable: Syllable, stress: "'" | "`"): (word: Wo
     if (syllable.stress !== targetStress) {
       return undefined
     }
-    let feet = word.feet.slice(0, -1)
+    let feet = word.contents.slice(0, -1)
     feet.push({ ...last, s2: syllable })
     return new Word(feet)
   }
 }
 function appendToLastFoot(syllable: Syllable, stress: "'" | "`"): (word: Word) => Word | undefined {
   return word => {
-    if (word.feet.length === 0) {
+    if (word.contents.length === 0) {
       return undefined
     }
-    let last = word.feet.at(-1)
+    let last = word.contents.at(-1)
     if (!(last && isFoot(last) && !last.s2)) {
       return undefined
     }
     stress = word.head ? "`" : stress
-    let feet = word.feet.slice(0, -1)
+    let feet = word.contents.slice(0, -1)
     feet.push({ ...last, s2: !last.s1.stress ? { ...syllable, stress } : syllable })
     return new Word(feet)
   }
 }
-/**
- * This form only works on stress since that's what I have working. It's close to trivial.
- */
-export function underlyingForm(w: Word): Syllable[] {
-  // TODO: Also need to strip stress too
+// NOTE: Annoyingly, a segmental underlying form doesn't have syllables.
+// It requires parsing to produce them. However, the metrical constraints I have
+// rely on syllables in the underlying form.
+// Pretty sure this divide is baked into phonology, and part of why the two analysis are always so separated.
+// So: constraint demotion on meter is going to need a different function to produce underlying form than
+//     when running on segments.
+export function underlyingMeter(w: Word): Syllable[] {
   let syllables: Syllable[] = []
-  for (let foot of w.feet) {
-    if (isSyllable(foot)) {
-      push(foot)
+  for (let x of w.contents) {
+    if (isSegment(x)) {
+    } else if (isSyllable(x)) {
+      push(x)
     } else {
-      push(foot.s1)
-      if (foot.s2) {
-        push(foot.s2)
+      push(x.s1)
+      if (x.s2) {
+        push(x.s2)
       }
     }
   }
@@ -226,9 +263,31 @@ export function underlyingForm(w: Word): Syllable[] {
     syllables.push({ ...s, stress: "" })
   }
 }
+export function underlyingSegments(w: Word): Segment[] {
+  let segments: Segment[] = []
+  for (let x of w.contents) {
+    if (isSegment(x)) {
+      if (x.input) segments.push(x)
+    } else if (isSyllable(x)) {
+      push(x)
+    } else {
+      push(x.s1)
+      if (x.s2) {
+        push(x.s2)
+      }
+    }
+  }
+  return segments
+
+  function push(s: Syllable) {
+    if (s.onset && s.onset.input) segments.push(s.onset)
+    if (s.nucleus && s.nucleus.input) segments.push(s.nucleus)
+    if (s.coda && s.coda.input) segments.push(s.coda)
+  }
+}
 /**
  * NOTE: Empty strings return an undefined head.
- * NOTE: This isn't generally correct, but it fits the Garawa example
+ * NOTE: This isn't generally correct, but it fits the Garawa example, so I'm using it for testing constraints
  */
 export function parseTrochaic(overt: Syllable[]): Word {
   if (overt.length === 0) {

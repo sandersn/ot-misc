@@ -1,6 +1,6 @@
 import { partition, pickIndices } from "./util/array.ts"
-import type { Column, Syllable, Strata, StressMark, Erc } from "./types.ts"
-import { parseInterpretive, parseProduction, underlyingForm } from "./word.ts"
+import type { Column, Syllable, Strata, StressMark, Erc, Segment } from "./types.ts"
+import { parseInterpretive, parseProduction, underlyingMeter, isSyllable } from "./word.ts"
 import { markToERC } from "./ot.ts"
 import assert from "node:assert"
 /**
@@ -38,10 +38,11 @@ export function recursive(columns: Column[]): Strata {
   }
 }
 // TODO: this whole thing should use strata (Array<Set<Constraint>>) instead of just Constraint[]
+// TODO: For now this needs to work on different parseI/parseP/underlying for segments and meter
 export function errorDriven(overt: Syllable[], hierarchy: StressMark[]): StressMark[] {
   for (let rounds = 0; rounds < 10; rounds++) {
     let interp = parseInterpretive(overt, hierarchy)
-    let uf = underlyingForm(interp)
+    let uf = tmpCleanUnderlying(underlyingMeter(interp))
     let prod = parseProduction(uf, hierarchy)
     if (interp.equal(prod)) {
       return hierarchy
@@ -53,6 +54,9 @@ export function errorDriven(overt: Syllable[], hierarchy: StressMark[]): StressM
     hierarchy = demotion(row, hierarchy)
   }
   throw new Error("Error-driven constraint demotion did not converge in 10 rounds.")
+}
+function tmpCleanUnderlying(underlying: Array<Segment | Syllable>): Syllable[] {
+  return underlying.filter(isSyllable)
 }
 function demotion(row: Erc[], hierarchy: StressMark[]) {
   let firstWinner = row.indexOf("w")
