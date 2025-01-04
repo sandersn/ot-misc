@@ -1,21 +1,21 @@
 import type { Word } from "./word.ts"
-export type Faith = {
+export type StringFaith = {
   kind: "faith"
   name: string
   eval(input: string, output: string): number
 }
-export type Mark = {
+export type StringMark = {
   kind: "mark"
   name: string
   eval(input: string): number
 }
-export type Constraint = Faith | Mark
-export type Stratum = Constraint[]
+export type SurfaceConstraint = StringFaith | StringMark
+export type Stratum = SurfaceConstraint[]
 export type Strata = Stratum[]
 /// segment types ///
 export type Segment = {
   // TODO: Eventually this should be a real phone
-  segment: 'c' | 'v'
+  segment: "c" | "v"
   // TODO: A boolean would be good enough for CVT example
   input?: Segment | undefined
 }
@@ -45,30 +45,18 @@ export type Foot = {
   s1: Syllable
   s2?: Syllable
 }
-// TODO: Unify these with normal faith/mark once I have a good representation for each
-export type StressFaith = {
-  kind: "faith"
-  name: string
-  evaluate(underlying: Word, parse: Word): number
-}
-export type StressMark = {
-  kind: "mark"
+export type Constraint = {
   name: string
   evaluate(parse: Word): number
 }
-export type StressConstraint = StressMark | StressFaith
-
-export function Faith(name: string, faith: (input: string, output: string) => number): Faith {
+export function Faith(name: string, faith: (input: string, output: string) => number): StringFaith {
   return { kind: "faith", name, eval: faith }
 }
-export function Mark(name: string, mark: (input: string) => number): Mark {
+export function Mark(name: string, mark: (input: string) => number): StringMark {
   return { kind: "mark", name, eval: mark }
 }
-export function StressFaith(name: string, evaluate: (overt: Word, parse: Word) => number): StressFaith {
-  return { kind: "faith", name, evaluate }
-}
-export function StressMark(name: string, evaluate: (overt: Word) => number): StressMark {
-  return { kind: "mark", name, evaluate }
+export function Constraint(name: string, evaluate: (overt: Word) => number): Constraint {
+  return { name, evaluate }
 }
 // TODO: Also need an absolute column that uses numbers (but most code operates on ERCs)
 /**
@@ -81,17 +69,17 @@ export type Erc = "l" | "w" | "="
  * Column of a tableau, relative to another column
  */
 export type Column = {
-  constraint: Constraint
+  constraint: SurfaceConstraint
   violations: Erc[]
 }
-export function Column(constraint: Constraint, violations: Erc[]): Column {
+export function Column(constraint: SurfaceConstraint, violations: Erc[]): Column {
   return { constraint, violations }
 }
 export type MarkColumn = {
-  constraint: Constraint
+  constraint: SurfaceConstraint
   violations: number[]
 }
-export function MarkColumn(constraint: Constraint, violations: number[]): MarkColumn {
+export function MarkColumn(constraint: SurfaceConstraint, violations: number[]): MarkColumn {
   return { constraint, violations }
 }
 export let features = [

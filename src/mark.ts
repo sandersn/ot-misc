@@ -22,14 +22,14 @@ export function onsetRepair(output: string): string[] {
   let epenthesise = (syllable: string) => "t" + syllable
   let syllables = syllabify(unifeat.phonesToFeatures(output))
   let opss: ((s: string) => string)[][] = sequence(
-    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise]))
+    syllables.map(syll => (syll[0]["cons"] ? [ident] : [ident, del, epenthesise])),
   )
   // TODO: Hacky that the inner algorithm is in syllables but the outer is in strings. It was just easier to test, I bet.
   let syllables2 = recreateSyllables(syllables)
   return opss.map(ops =>
     zipWith(ops, syllables2, (op, syll) => op(syll))
       .flat()
-      .join("")
+      .join(""),
   )
 }
 /**

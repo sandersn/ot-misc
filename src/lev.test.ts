@@ -47,7 +47,7 @@ testall("Feature distance", {
         ["insert", [2, 3]],
         ["insert", [2, 4]],
         ["insert", [2, 5]],
-      ]
+      ],
     )
   },
   "optimal path is reflexive"() {
@@ -84,7 +84,7 @@ testall("Feature distance", {
         ["insert", [1, 3]],
         ["substitute", [1, 4]],
         ["insert", [2, 5]],
-      ]
+      ],
     )
   },
 })

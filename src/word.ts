@@ -1,4 +1,4 @@
-import type { StressMark, Foot, Syllable, Segment, Stress } from "./types.ts"
+import type { Constraint, Foot, Syllable, Segment, Stress } from "./types.ts"
 /**
  * Additional rules not enforced by this type:
  * - Unfooted syllables must be unstressed.
@@ -93,8 +93,8 @@ function formatWord(pw: Word): string {
       isFoot(s)
         ? "(" + formatSyllable(s.s1) + (s.s2 ? formatSyllable(s.s2) : "") + ")"
         : isSegment(s)
-        ? formatSegment(s)
-        : formatSyllable(s)
+          ? formatSegment(s)
+          : formatSyllable(s),
     )
     .join("")
 }
@@ -123,7 +123,7 @@ export function isSegment(s: Foot | Syllable | Segment): s is Segment {
  * TODO: This should be in its own module eventually.
  * TODO: Look up the standard OT name for this
  */
-function evaluate(candidates: Word[], hierarchy: StressMark[]): Word | undefined {
+function evaluate(candidates: Word[], hierarchy: Constraint[]): Word | undefined {
   if (candidates.length === 0) {
     return undefined
   }
@@ -139,10 +139,24 @@ function evaluate(candidates: Word[], hierarchy: StressMark[]): Word | undefined
   }
   return candidates[0]
 }
+export function parseProductionSegment(syllables: Syllable[], hierarchy: Constraint[]): Word {
+  let best = [empty()]
+  let change = true
+  while (!change) {
+    best = [
+      // O
+      // N
+      // D
+    ]
+  }
+  for (let s of syllables.slice(1)) {
+  }
+  return empty()
+}
 /**
  * NOTE: maybe hierarchy should be Array<Set<Constraint>> eventually
  */
-export function parseProduction(syllables: Syllable[], hierarchy: StressMark[]): Word {
+export function parseProduction(syllables: Syllable[], hierarchy: Constraint[]): Word {
   let best = [empty()]
   for (let s of syllables) {
     best = [
@@ -167,11 +181,11 @@ export function parseProduction(syllables: Syllable[], hierarchy: StressMark[]):
   return (
     evaluate(
       best.filter(w => w.head),
-      hierarchy
+      hierarchy,
     ) ?? empty()
   )
 }
-export function parseInterpretive(syllables: Syllable[], hierarchy: StressMark[]): Word {
+export function parseInterpretive(syllables: Syllable[], hierarchy: Constraint[]): Word {
   let best = [empty()]
   for (let s of syllables) {
     best = [
@@ -201,7 +215,7 @@ export function parseInterpretive(syllables: Syllable[], hierarchy: StressMark[]
   return (
     evaluate(
       best.filter(w => w.head),
-      hierarchy
+      hierarchy,
     ) ?? empty()
   )
 }

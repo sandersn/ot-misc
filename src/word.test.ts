@@ -12,7 +12,7 @@ import {
   iambic,
 } from "./constraint.ts"
 import { deepEqual as equal, strictEqual as eq } from "node:assert"
-import type { StressMark } from "./types.ts"
+import type { Constraint } from "./types.ts"
 testall("word.Word", {
   toStringEmpty() {
     eq(new Word([]).toString(), "")
@@ -71,7 +71,7 @@ parseProductionAll(
     ["......", "('..)(`..)(`..)"],
     [".......", "('..).(`..)(`..)"],
   ],
-  [footBin, mainLeft, parseFoot, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
+  [footBin, mainLeft, parseFoot, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
 )
 parseInterpretiveAll(
   [
@@ -85,7 +85,7 @@ parseInterpretiveAll(
     ["'...`..`..", "('..).(`..)(`..)"],
     ["._'..", ".(_'.)."],
   ],
-  [footBin, mainLeft, parseFoot, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic]
+  [footBin, mainLeft, parseFoot, allFeetRight, footNonFinal, allFeetLeft, mainRight, iambic],
 )
 underlyingMeterAll([
   ["", ""],
@@ -120,7 +120,7 @@ function parseTrochaicAll(patterns: [string, string][]): void {
     }
   })
 }
-function parseProductionAll(patterns: Array<[string, string]>, hierarchy: StressMark[]): void {
+function parseProductionAll(patterns: Array<[string, string]>, hierarchy: Constraint[]): void {
   suite("word.parseProduction", () => {
     for (let [underlying, word] of patterns) {
       test(`${underlying} => ${word}`, () => {
@@ -130,7 +130,7 @@ function parseProductionAll(patterns: Array<[string, string]>, hierarchy: Stress
     }
   })
 }
-function parseInterpretiveAll(patterns: Array<[string, string]>, hierarchy: StressMark[]): void {
+function parseInterpretiveAll(patterns: Array<[string, string]>, hierarchy: Constraint[]): void {
   suite("word.parseInterpretive", () => {
     for (let [underlying, word] of patterns) {
       test(`${underlying} => ${word}`, () => {

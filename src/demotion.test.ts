@@ -65,7 +65,7 @@ testall("Demotion", {
         "NonFinal",
         "WordFootLeft",
         "WordFootRight",
-      ]
+      ],
     )
   },
   ripcdCh4Fail1() {
@@ -99,7 +99,7 @@ testall("Demotion", {
         "NonFinal",
         "WordFootLeft",
         "WordFootRight",
-      ]
+      ],
     )
   },
   ripcdCh4Fail2() {
@@ -107,7 +107,7 @@ testall("Demotion", {
       demotion
         .errorDriven(meterUnparsed(".'_.."), [wsp, footBin, mainLeft, footNonFinal, parseFoot, wordFootRight, nonFinal])
         .map(h => h.name),
-      ["WSP", "FootBin", "MainLeft", "FootNonFinal", "NonFinal", "Parse", "WordFootRight"]
+      ["WSP", "FootBin", "MainLeft", "FootNonFinal", "NonFinal", "Parse", "WordFootRight"],
     )
   },
 })

@@ -1,11 +1,11 @@
 import assert from "node:assert"
-import type { Constraint, Erc, Tree } from "./types.ts"
+import type { SurfaceConstraint as StringConstraint, Erc, Tree } from "./types.ts"
 import { transpose, zip } from "./util/array.ts"
 /**
  * When evaluating a markedness constraint, you can pass either
  * (input, output) or just (output) as args.
  */
-export function evaluate(constraint: Constraint, args: string[]): number {
+export function evaluate(constraint: StringConstraint, args: string[]): number {
   switch (constraint.kind) {
     case "faith":
       assert(args.length >= 2)

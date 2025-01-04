@@ -1,5 +1,5 @@
 import { testall, meterUnparsed, meterPattern } from "./util/testing.ts"
-import type { StressMark } from "./types.ts"
+import type { Constraint } from "./types.ts"
 import { Word } from "./word.ts"
 import {
   parseFoot,
@@ -153,9 +153,9 @@ testall("Faithfulness constraints", {
 })
 // TODO: evaluate/evalSegment need to be unified
 // TODO: Rename StressMark to Constraint
-function evaluate(constraint: StressMark, overt: string, count: number): () => void {
+function evaluate(constraint: Constraint, overt: string, count: number): () => void {
   return () => equal(constraint.evaluate(parseTrochaic(meterUnparsed(overt))), count)
 }
-function evalSegment(constraint: StressMark, overt: string, count: number): () => void {
+function evalSegment(constraint: Constraint, overt: string, count: number): () => void {
   return () => equal(constraint.evaluate(meterPattern(overt)), count)
 }

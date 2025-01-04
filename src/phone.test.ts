@@ -7,8 +7,8 @@ function duplicates() {
   // TODO: map keys aren't checked by deep equal in JS, so can't use them to deduplicate
   return Array.from(
     collapsePairs(
-      Object.entries(phonemes).map(([k, v]) => [JSON.stringify(Object.entries(v)), k] as [any, string])
-    ).values()
+      Object.entries(phonemes).map(([k, v]) => [JSON.stringify(Object.entries(v)), k] as [any, string]),
+    ).values(),
   ).filter(cs => cs.length > 1)
 }
 testall("Phoneme feature database tests", {
@@ -34,7 +34,7 @@ a æ
 ʊ ʉ
 ə ɜ`
         .split("\n")
-        .map(s => s.split(" "))
+        .map(s => s.split(" ")),
     )
   },
 })
